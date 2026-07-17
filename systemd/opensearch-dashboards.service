@@ -1,0 +1,29 @@
+[Unit]
+Description=OpenSearch Dashboards 2
+BindsTo=probemanager.service
+Wants=licenseserver.service
+After=licenseserver.service
+Wants=probemanager.service
+Before=probemanager.service
+Wants=probetransmogrifier.service
+Before=probetransmogrifier.service
+[Service]
+Type=simple
+User=nginx
+Group=nginx
+PermissionsStartOnly=true
+ExecStartPre=-/usr/bin/rm -rf /usr/local/kibana-7.10.2-linux-x64/
+ExecStartPre=/usr/bin/touch /var/log/probe/OSDStartup.log
+ExecStartPre=/usr/bin/chown nginx:nginx /var/log/probe/OSDStartup.log
+Environment=CONFIG_PATH=/usr/local/opensearch-dashboards-2.19.5-linux-x64/config/opensearch_dashboards.yml
+Environment=NODE_ENV=production
+WorkingDirectory=/usr/local/opensearch-dashboards-2.19.5-linux-x64
+TimeoutStartSec=300
+ExecStart=/usr/local/opensearch-dashboards-2.19.5-linux-x64/bin/opensearch-dashboards
+ExecStartPost=/usr/bin/python3 /usr/local/opensearch-dashboards-2.19.5-linux-x64/scripts/configureOSD.py
+ExecStartPost=/usr/bin/bash scripts/osd-post-start.sh
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=10
+[Install]
+WantedBy=netmon.service

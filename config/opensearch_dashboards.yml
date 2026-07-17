@@ -1,20 +1,26 @@
+# THIS FILE HAS BEEN MODIFIED FROM THE ORIGINAL SOURCE
+#
+# Copyright 2020 LogRhythm, Inc
+# Licensed under the LogRhythm Global End User License Agreement,
+# which can be found through this page: https://logrhythm.com/about/logrhythm-terms-and-conditions/
+
 # OpenSearch Dashboards is served by a back end server. This setting specifies the port to use.
-#server.port: 5601
+server.port: 5601
 
 # Specifies the address to which the OpenSearch Dashboards server will bind. IP addresses and host names are both valid values.
 # The default is 'localhost', which usually means remote machines will not be able to connect.
 # To allow connections from remote users, set this parameter to a non-loopback address.
-#server.host: "localhost"
+server.host: "localhost"
 
 # Enables you to specify a path to mount OpenSearch Dashboards at if you are running behind a proxy.
 # Use the `server.rewriteBasePath` setting to tell OpenSearch Dashboards if it should remove the basePath
 # from requests it receives, and to prevent a deprecation warning at startup.
 # This setting cannot end in a slash.
-#server.basePath: ""
+server.basePath: '/analyze'
 
 # Specifies whether OpenSearch Dashboards should rewrite requests that are prefixed with
 # `server.basePath` or require that they are rewritten by your reverse proxy.
-#server.rewriteBasePath: false
+server.rewriteBasePath: true 
 
 # The maximum payload size in bytes for incoming server requests.
 #server.maxPayloadBytes: 1048576
@@ -23,11 +29,12 @@
 #server.name: "your-hostname"
 
 # The URLs of the OpenSearch instances to use for all your queries.
-#opensearch.hosts: ["http://localhost:9200"]
+opensearch.hosts: ["http://localhost:9200"]
+opensearch.preserveHost: true
 
 # OpenSearch Dashboards uses an index in OpenSearch to store saved searches, visualizations and
 # dashboards. OpenSearch Dashboards creates a new index if the index doesn't already exist.
-#opensearchDashboards.index: ".opensearch_dashboards"
+opensearchDashboards.index: ".opensearch_dashboards"
 
 # OpenSearch Dashboards uses an index in OpenSearch to store dynamic configurations.
 # This shall be a different index from opensearchDashboards.index.
@@ -41,7 +48,7 @@
 # csp_handler.enabled: false
 
 # The default application to load.
-#opensearchDashboards.defaultAppId: "home"
+opensearchDashboards.defaultAppId: "dashboard"
 
 # Set the value to true to disable the welcome screen
 #home.disableWelcomeScreen: false
@@ -110,7 +117,7 @@
 
 # Time in milliseconds to wait for responses from the back end or OpenSearch. This value
 # must be a positive integer.
-#opensearch.requestTimeout: 30000
+opensearch.requestTimeout: 300000
 
 # Enables the memory circuit breaker that prevents heap out of memory errors for large query responses.
 # If enabled, we will provide additional check to prevent potential out of memory error in @openserach-project/opensearch.
@@ -135,7 +142,7 @@
 #opensearch.customHeaders: {}
 
 # Time in milliseconds for OpenSearch to wait for responses from shards. Set to 0 to disable.
-#opensearch.shardTimeout: 30000
+opensearch.shardTimeout: 0
 
 # Logs queries sent to OpenSearch. Requires logging.verbose set to true.
 #opensearch.logQueries: false
@@ -160,7 +167,7 @@
 #logging.silent: false
 
 # Set the value of this setting to true to suppress all logging output other than error messages.
-#logging.quiet: false
+logging.quiet: true 
 
 # Set the value of this setting to true to log all events, including system usage information
 # and all requests.
@@ -262,6 +269,10 @@
 # Set the value of this setting to false to suppress search usage telemetry
 # for reducing the load of OpenSearch cluster.
 # data.search.usageTelemetry.enabled: false
+
+telemetry.allowChangingOptInStatus: true
+telemetry.optIn: false
+telemetry.enabled: false
 
 # Set the value of this setting to false to disable VisBuilder
 # functionality in Visualization.
@@ -379,3 +390,7 @@
 
 # Set the value to true to enable the new UI for savedQueries in Discover
 # data.savedQueriesNewUI.enabled: true
+csp.rules:
+  - "script-src 'unsafe-eval' 'unsafe-inline' 'self'"
+  - "worker-src blob: 'self'"
+  - "style-src 'unsafe-inline' 'self'"
