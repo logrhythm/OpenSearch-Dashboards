@@ -266,14 +266,6 @@ logging.quiet: true
 
 # map.showRegionDeniedWarning: false
 
-# Set the value of this setting to false to suppress search usage telemetry
-# for reducing the load of OpenSearch cluster.
-# data.search.usageTelemetry.enabled: false
-
-telemetry.allowChangingOptInStatus: true
-telemetry.optIn: false
-telemetry.enabled: false
-
 # Set the value of this setting to false to disable VisBuilder
 # functionality in Visualization.
 # vis_builder.enabled: false
@@ -390,7 +382,3 @@ telemetry.enabled: false
 
 # Set the value to true to enable the new UI for savedQueries in Discover
 # data.savedQueriesNewUI.enabled: true
-csp.rules:
-  - "script-src 'unsafe-eval' 'unsafe-inline' 'self'"
-  - "worker-src blob: 'self'"
-  - "style-src 'unsafe-inline' 'self'"

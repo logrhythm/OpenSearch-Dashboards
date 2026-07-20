@@ -21,18 +21,9 @@ tar xf %_sourcedir/%{name}-%{version}.tar
 if [ $? -ne 0 ]; then
    exit $?
 fi
-# Install OSD 2.x compatible network visualization plugin
-unzip resources/plugins/kbn_network*.zip -d plugins/
-if [ $? -ne 0 ]; then
-   echo "Exiting build. Could not unzip plugin."
-   exit 1
-fi
 %build
 cd %{name}
 /usr/bin/yarn
-cd plugins/opensearch-dashboards/
-/usr/bin/yarn
-cd ../../
 /usr/bin/yarn osd bootstrap
 NODE_OPTIONS="--max-old-space-size=8192" node scripts/build --rpm --skip-archives --release --verbose --allow-root
 %pre
@@ -51,6 +42,15 @@ cp systemd/opensearch-dashboards.service %{buildroot}/lib/systemd/system
 mkdir -p %{buildroot}/usr/local/%{name}-%{osd_version}-linux-x64
 cp -a build/%{name}-%{osd_version}-linux-x64/* %{buildroot}/usr/local/%{name}-%{osd_version}-linux-x64/
 cp -a resources/ %{buildroot}/usr/local/%{name}-%{osd_version}-linux-x64/
+# Install pre-built kbnNetwork plugin after OSD build — must not be present during %build
+# because the optimizer has no source public/ dir to compile and would fail
+#mkdir -p %{buildroot}/usr/local/%{name}-%{osd_version}-linux-x64/plugins
+#unzip resources/plugins/kbn_network*.zip \
+#    -d %{buildroot}/usr/local/%{name}-%{osd_version}-linux-x64/plugins/
+#if [ $? -ne 0 ]; then
+#   echo "Exiting install. Could not unzip kbn_network plugin."
+#   exit 1
+#fi
 mkdir -p %{buildroot}/usr/local/%{name}-%{osd_version}-linux-x64/data
 cp node_modules/tether/dist/js/tether.min.js %{buildroot}/usr/local/%{name}-%{osd_version}-linux-x64/src/core/server/core_app/assets/ 2>/dev/null || true
 mkdir -p %{buildroot}/usr/local/%{name}-%{osd_version}-linux-x64/scripts
@@ -59,7 +59,6 @@ cp scripts/configureOSD.py %{buildroot}/usr/local/%{name}-%{osd_version}-linux-x
 cp scripts/util.py %{buildroot}/usr/local/%{name}-%{osd_version}-linux-x64/scripts
 cp scripts/osd-post-start.sh %{buildroot}/usr/local/%{name}-%{osd_version}-linux-x64/scripts
 cp scripts/removeOldOSDIndices.py %{buildroot}/usr/local/%{name}-%{osd_version}-linux-x64/scripts
-cp -a plugins/ %{buildroot}/usr/local/%{name}-%{osd_version}-linux-x64/
 find %{buildroot} -type f -name "*.py" -exec sed -i '1s|#!.*python|#!/usr/bin/python3|' {} +
 find %{buildroot} -type f \( -name "*.md" -o -name "*.json" -o -name "*.js" \) -exec chmod -x {} +
 mkdir -p %{buildroot}/usr/local/www/probe/
