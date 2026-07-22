@@ -1,0 +1,56 @@
+{
+   "migrationVersion": {
+      "dashboard": "7.3.0"
+   }, 
+   "references": [
+      {
+         "type": "visualization", 
+         "name": "panel_0", 
+         "id": "Top-Applications-By-Sessions-(pie)"
+      }, 
+      {
+         "type": "visualization", 
+         "name": "panel_1", 
+         "id": "Top-Applications-By-Metadata-Impact-(pie)"
+      }, 
+      {
+         "type": "visualization", 
+         "name": "panel_2", 
+         "id": "Top-Applications-By-Bandwidth-(pie)"
+      }, 
+      {
+         "type": "visualization", 
+         "name": "panel_3", 
+         "id": "Top-Applications-By-Packet-Count"
+      }, 
+      {
+         "type": "visualization", 
+         "name": "panel_4", 
+         "id": "Top-Applications-By-Sessions-(histogram)"
+      }, 
+      {
+         "type": "visualization", 
+         "name": "panel_5", 
+         "id": "Average-Repeated-Elements-in-a-Message-(All-Reports)-(line)"
+      }, 
+      {
+         "type": "visualization", 
+         "name": "panel_6", 
+         "id": "Average-Message-Size-(All-Reports)-(line)"
+      }
+   ], 
+   "type": "dashboard", 
+   "dashboard": {
+      "hits": 0, 
+      "timeRestore": false, 
+      "description": "", 
+      "title": "Traffic Profile Dashboard", 
+      "panelsJSON": "[{\"version\":\"7.5.2\",\"gridData\":{\"x\":12,\"y\":0,\"w\":12,\"h\":12,\"i\":\"1\"},\"panelIndex\":\"1\",\"embeddableConfig\":{},\"panelRefName\":\"panel_0\"},{\"version\":\"7.5.2\",\"gridData\":{\"x\":0,\"y\":0,\"w\":12,\"h\":12,\"i\":\"2\"},\"panelIndex\":\"2\",\"embeddableConfig\":{},\"panelRefName\":\"panel_1\"},{\"version\":\"7.5.2\",\"gridData\":{\"x\":24,\"y\":0,\"w\":12,\"h\":12,\"i\":\"3\"},\"panelIndex\":\"3\",\"embeddableConfig\":{},\"panelRefName\":\"panel_2\"},{\"version\":\"7.5.2\",\"gridData\":{\"x\":36,\"y\":0,\"w\":12,\"h\":12,\"i\":\"4\"},\"panelIndex\":\"4\",\"embeddableConfig\":{},\"panelRefName\":\"panel_3\"},{\"version\":\"7.5.2\",\"gridData\":{\"x\":0,\"y\":12,\"w\":16,\"h\":12,\"i\":\"5\"},\"panelIndex\":\"5\",\"embeddableConfig\":{},\"panelRefName\":\"panel_4\"},{\"version\":\"7.5.2\",\"gridData\":{\"x\":16,\"y\":12,\"w\":16,\"h\":12,\"i\":\"7\"},\"panelIndex\":\"7\",\"embeddableConfig\":{},\"panelRefName\":\"panel_5\"},{\"version\":\"7.5.2\",\"gridData\":{\"x\":32,\"y\":12,\"w\":16,\"h\":12,\"i\":\"8\"},\"panelIndex\":\"8\",\"embeddableConfig\":{},\"panelRefName\":\"panel_6\"}]", 
+      "optionsJSON": "{\"useMargins\":true,\"hidePanelTitles\":false}", 
+      "version": 4, 
+      "kibanaSavedObjectMeta": {
+         "searchSourceJSON": "{\"filter\":[],\"query\":{\"query\":\"\",\"language\":\"lucene\"}}"
+      }
+   }, 
+   "updated_at": "2020-02-28T17:04:19.534Z"
+}
