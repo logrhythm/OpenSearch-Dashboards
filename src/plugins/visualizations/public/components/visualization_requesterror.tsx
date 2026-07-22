@@ -44,6 +44,18 @@ export class VisualizationRequestError extends React.Component<VisualizationRequ
     const { error } = this.props;
     const errorMessage = typeof error === 'string' ? error : error.message;
 
+    // Suppress abort errors — panels should show empty, not an error state
+    if (typeof error !== 'string') {
+      if (error.name === 'AbortError') return null;
+      if (
+        errorMessage &&
+        (errorMessage.includes('abort') ||
+          errorMessage.includes('Request aborted') ||
+          errorMessage.includes('The user aborted'))
+      )
+        return null;
+    }
+
     return (
       <div className="visError" ref={this.containerDiv}>
         <EuiText size="xs" color="subdued">

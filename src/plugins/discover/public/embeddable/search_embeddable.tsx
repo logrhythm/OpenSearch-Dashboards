@@ -63,6 +63,7 @@ import {
   SORT_DEFAULT_ORDER_SETTING,
   DOC_HIDE_TIME_COLUMN_SETTING,
 } from '../../common';
+import { showInvalidQueryToast } from '../../../data/public';
 import { SearchEmbeddableComponent } from './search_embeddable_component';
 import { DiscoverServices } from '../build_services';
 import * as columnActions from '../application/utils/state_management/common';
@@ -356,7 +357,30 @@ export class SearchEmbeddable
       this.searchProps!.hits = resp.hits.total;
       this.searchProps!.isLoading = false;
     } catch (error) {
-      this.updateOutput({ loading: false, error });
+      // Check whether this is a query syntax error from OS (search_phase_execution_exception).
+      const QUERY_ERROR_TYPES = [
+        'search_phase_execution_exception',
+        'parsing_exception',
+        'query_shard_exception',
+        'query_parsing_exception',
+      ];
+      const attrError = error?.body?.attributes?.error;
+      const esType =
+        (typeof attrError === 'object' ? attrError?.type : undefined) ||
+        attrError?.caused_by?.type;
+      const msg = error?.message ?? '';
+      const isQueryError =
+        error?.name === 'QuerySyntaxError' ||
+        QUERY_ERROR_TYPES.includes(esType) ||
+        msg.includes('search_phase_execution_exception') ||
+        msg.includes('all shards failed');
+
+      if (isQueryError) {
+        showInvalidQueryToast();
+        this.updateOutput({ loading: false, error: undefined });
+      } else {
+        this.updateOutput({ loading: false, error });
+      }
       this.searchProps!.isLoading = false;
     }
   };

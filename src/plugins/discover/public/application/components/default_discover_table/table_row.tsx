@@ -19,6 +19,9 @@ import { fetchSourceTypeDataCell } from '../data_grid/data_grid_table_cell_value
 import { DocViewer } from '../doc_viewer/doc_viewer';
 import { DocViewerLinks } from '../doc_viewer_links/doc_viewer_links';
 import { TableCell } from './table_cell';
+import { shouldBindFormat } from '../../../../../../netmon/field_formats/should_bind_format';
+import AttachDownload from '../../../../../../netmon/components/attach_download';
+import CaptureDownload from '../../../../../../netmon/components/capture_download';
 
 export interface TableRowProps {
   row: OpenSearchSearchHit;
@@ -88,6 +91,43 @@ const TableRowUI = ({
               </div>
             </td>
           );
+        }
+
+        // Render Attach/Captured fields as React components instead of HTML strings
+        if (shouldBindFormat(colName)) {
+          const src = (row._source || {}) as any;
+          if (colName === 'Attach') {
+            const cellContent =
+              src.Attach ? (
+                <AttachDownload
+                  session={src.Session || ''}
+                  fileName={src.Filename || ''}
+                  captured={!!src.Captured}
+                />
+              ) : null;
+            return (
+              <td
+                key={colName}
+                data-test-subj="docTableField"
+                className="osdDocTableCell eui-textBreakAll eui-textBreakWord"
+              >
+                <div className="truncate-by-height">{cellContent}</div>
+              </td>
+            );
+          }
+          if (colName === 'Captured') {
+            const cellContent =
+              src.Captured ? <CaptureDownload session={src.Session || ''} /> : null;
+            return (
+              <td
+                key={colName}
+                data-test-subj="docTableField"
+                className="osdDocTableCell eui-textBreakAll eui-textBreakWord"
+              >
+                <div className="truncate-by-height">{cellContent}</div>
+              </td>
+            );
+          }
         }
 
         const formattedValue = indexPattern.formatField(row, colName);

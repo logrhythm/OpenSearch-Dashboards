@@ -57,4 +57,5 @@ export {
 export { getOpenSearchPreference } from './opensearch_search';
 
 export { SearchInterceptor, SearchInterceptorDeps, ISearchInterceptor } from './search_interceptor';
+export { showInvalidQueryToast } from './fetch/handle_response';
 export * from './errors';

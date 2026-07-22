@@ -37,16 +37,42 @@ interface Props {
   error?: EmbeddableError;
 }
 
+function isQuerySyntaxError(error: EmbeddableError): boolean {
+  if (error.name === 'QuerySyntaxError') return true;
+  const msg = error.message ?? '';
+  return (
+    msg.includes('search_phase_execution_exception') ||
+    msg.includes('all shards failed') ||
+    msg.includes('parsing_exception') ||
+    msg.includes('query_shard_exception')
+  );
+}
+
 export function EmbeddableErrorLabel(props: Props) {
   if (!props.error) return null;
-  const labelText =
-    props.error.name === 'AbortError'
-      ? i18n.translate('embeddableApi.panel.labelAborted', {
-          defaultMessage: 'Aborted',
-        })
-      : i18n.translate('embeddableApi.panel.labelError', {
-          defaultMessage: 'Error',
-        });
+
+  // Hide abort errors completely to prevent "Aborted" labels in dashboard panels
+  if (props.error.name === 'AbortError') {
+    return null;
+  }
+
+  if (
+    props.error.message &&
+    (props.error.message.includes('abort') ||
+      props.error.message.includes('Request aborted') ||
+      props.error.message.includes('The user aborted'))
+  ) {
+    return null;
+  }
+
+  // Hide the "Error" badge for query syntax errors — a single user-friendly toast is shown instead
+  if (isQuerySyntaxError(props.error)) {
+    return null;
+  }
+
+  const labelText = i18n.translate('embeddableApi.panel.labelError', {
+    defaultMessage: 'Error',
+  });
 
   return (
     <div className="embPanel__labelWrapper">

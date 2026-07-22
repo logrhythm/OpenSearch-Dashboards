@@ -82,6 +82,7 @@ import { HeaderNavControls } from './header_nav_controls';
 import { HomeLoader } from './home_loader';
 import { RecentItems } from './recent_items';
 import { GlobalSearchCommand } from '../../global_search';
+import LogRhythmNavbar from '../../../../../netmon/components/navbar';
 
 export interface HeaderProps {
   http: HttpStart;
@@ -647,6 +648,54 @@ export function Header({
 
   return (
     <>
+      {/* LogRhythm top navigation bar — rendered as fixed overlay above OSD header */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 19999,
+          height: '50px',
+          backgroundColor: 'inherit',
+          pointerEvents: 'auto',
+        }}
+      >
+        <LogRhythmNavbar />
+      </div>
+
+      {/* CSS fixes for proper positioning and dropdown visibility */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+          body, body.coreSystemRootDomElement {
+            margin-top: 50px !important;
+            position: static !important;
+          }
+          .navbar.navbar-fixed-top {
+            z-index: 19999 !important;
+            overflow: visible !important;
+            height: 50px !important;
+            min-height: 50px !important;
+          }
+          .navbar .navbar-header, .navbar .container-fluid, .navbar-collapse {
+            overflow: visible !important;
+          }
+          .navbar .dropdown-menu {
+            z-index: 20000 !important;
+            position: absolute !important;
+            overflow: visible !important;
+          }
+          .globalNavBars, #globalHeaderBars {
+            margin-top: 0 !important;
+          }
+          #osd-top-nav-helper {
+            display: none !important;
+          }
+        `,
+        }}
+      />
+
       <header className={className} data-test-subj="headerGlobalNav">
         <div id="globalHeaderBars">
           {!useUpdatedHeader && useExpandedHeader && renderLegacyExpandedHeader()}

@@ -205,6 +205,16 @@ function getDurationAsMs(duration: number | Duration) {
 function getLoggerClass(log: Logger, logQueries = false) {
   return class OpenSearchClientLogging {
     public error(err: string | Error) {
+      // Suppress log spam from invalid user queries — expected user input errors
+      const msg = typeof err === 'string' ? err : err.message ?? '';
+      if (
+        msg.includes('search_phase_execution_exception') ||
+        msg.includes('all shards failed') ||
+        msg.includes('parsing_exception') ||
+        msg.includes('query_shard_exception')
+      ) {
+        return;
+      }
       log.error(err);
     }
 

@@ -51,6 +51,7 @@ import { HttpStart } from '../http';
 import { InjectedMetadataStart } from '../injected_metadata';
 import { NotificationsStart } from '../notifications';
 import { IUiSettingsClient } from '../ui_settings';
+import { initializeNotifications } from '../../../netmon/services';
 import { HeaderVariant, OPENSEARCH_DASHBOARDS_ASK_OPENSEARCH_LINK } from './constants';
 import { ChromeDocTitle, DocTitleService } from './doc_title';
 import { ChromeNavControls, NavControlsService } from './nav_controls';
@@ -258,6 +259,8 @@ export class ChromeService {
     const helpSupportUrl$ = new BehaviorSubject<string>(OPENSEARCH_DASHBOARDS_ASK_OPENSEARCH_LINK);
     const isNavDrawerLocked$ = new BehaviorSubject(localStorage.getItem(IS_LOCKED_KEY) === 'true');
     const sidecarConfig$ = overlays.sidecar.getSidecarConfig$();
+
+    initializeNotifications(notifications);
 
     const navControls = this.navControls.start();
     const navLinks = this.navLinks.start({ application, http });

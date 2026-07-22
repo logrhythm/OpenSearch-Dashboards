@@ -58,6 +58,7 @@ import {
 import { buildPipeline } from '../legacy/build_pipeline';
 import { Vis, SerializedVis } from '../vis';
 import { getExpressions, getNotifications, getUiActions } from '../services';
+import { showInvalidQueryToast } from '../../../data/public';
 import { VIS_EVENT_TO_TRIGGER } from './events';
 import { VisualizeEmbeddableFactoryDeps } from './visualize_embeddable_factory';
 import { TriggerId } from '../../../ui_actions/public';
@@ -305,6 +306,37 @@ export class VisualizeEmbeddable
       this.abortController.abort();
     }
     this.renderComplete.dispatchError();
+
+    // Show the user-friendly toast for query syntax errors.
+    // This path bypasses renderErrorHandler (custom onRenderError is set), so we
+    // must call showInvalidQueryToast() here. The deduplication flag ensures only
+    // one toast appears even when multiple panels fire simultaneously.
+    const QUERY_ERROR_TYPES = [
+      'search_phase_execution_exception',
+      'parsing_exception',
+      'query_shard_exception',
+      'query_parsing_exception',
+    ];
+    const msg = error.message ?? '';
+    const errType = (error as any).type ?? '';
+    if (
+      error.name === 'QuerySyntaxError' ||
+      QUERY_ERROR_TYPES.includes(errType) ||
+      msg.includes('search_phase_execution_exception') ||
+      msg.includes('all shards failed') ||
+      msg.includes('parsing_exception') ||
+      msg.includes('query_shard_exception')
+    ) {
+      showInvalidQueryToast();
+      if (this.domNode) {
+        while (this.domNode.firstChild) {
+          this.domNode.removeChild(this.domNode.firstChild);
+        }
+      }
+      this.updateOutput({ loading: false, error: undefined });
+      return;
+    }
+
     this.updateOutput({ loading: false, error });
   };
 
@@ -326,8 +358,15 @@ export class VisualizeEmbeddable
 
     const expressions = getExpressions();
     this.handler = new expressions.ExpressionLoader(this.domNode, undefined, {
-      onRenderError: (element: HTMLElement, error: ExpressionRenderError) => {
-        this.onContainerError(error);
+      onRenderError: (element: HTMLElement, error: ExpressionRenderError, handlers) => {
+        try {
+          this.onContainerError(error);
+        } catch (e) {
+          // onContainerError must never prevent handlers.done() from firing,
+          // otherwise the panel freezes grey indefinitely.
+        }
+        // handlers.done() MUST always be called — it clears the loading overlay.
+        handlers.done();
       },
     });
 

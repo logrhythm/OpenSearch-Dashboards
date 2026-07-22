@@ -30,8 +30,17 @@
 
 import dateMath from '@elastic/datemath';
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { i18n } from '@osd/i18n';
+
+// Import with try-catch to handle missing nm-web-shared package gracefully
+let convertQuery: (query: string) => Promise<string>;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  convertQuery = require('@logrhythm/nm-web-shared/services/query_mapping').convertQuery;
+} catch (e) {
+  convertQuery = (query: string): Promise<string> => Promise.resolve(query);
+}
 
 import {
   EuiButton,
@@ -57,6 +66,21 @@ import QueryStringInputUI from './query_string_input';
 import { doesKueryExpressionHaveLuceneSyntaxError, UI_SETTINGS } from '../../../common';
 import { PersistedLog, getQueryLog } from '../../query';
 import { NoDataPopover } from './no_data_popover';
+import { showInvalidQueryToast } from '../../search';
+import { SaveRule } from '../../../../../netmon/components/save_rule/save_rule';
+
+// A query guaranteed to match zero documents. Used to clear panels when the
+// user submits an invalid query instead of showing stale/all-data results.
+const NO_MATCH_QUERY = '_id:__no_match_placeholder__';
+
+// Detect "field:" patterns (no value after colon) that Lucene rejects.
+function isMalformedLuceneQuery(queryText: string): boolean {
+  const trimmed = queryText.trim();
+  if (!trimmed) return false;
+  return (
+    /\b\w[\w.]*\s*:\s*$/.test(trimmed) || /\b\w[\w.]*\s*:\s+(?=\b\w[\w.]*\s*:\s*$)/.test(trimmed)
+  );
+}
 
 const QueryStringInput = withOpenSearchDashboards(QueryStringInputUI);
 
@@ -92,13 +116,70 @@ export interface QueryBarTopRowProps {
 export default function QueryBarTopRow(props: QueryBarTopRowProps) {
   const [isDateRangeInvalid, setIsDateRangeInvalid] = useState(false);
   const [isQueryInputFocused, setIsQueryInputFocused] = useState(false);
+  const [displayQuery, setDisplayQuery] = useState<Query | undefined>(props.query);
 
   const opensearchDashboards = useOpenSearchDashboards<IDataPluginServices>();
   const { uiSettings, notifications, storage, appName, docLinks } = opensearchDashboards.services;
 
   const osdDQLDocs: string = docLinks!.links.opensearchDashboards.dql.base;
 
+  // Keep displayQuery in sync with external query changes (saved query load, X-clear, etc.)
+  // Skip when the incoming query is the no-match placeholder we submitted ourselves.
+  useEffect(() => {
+    if (props.query && props.query.query !== NO_MATCH_QUERY) {
+      setDisplayQuery(props.query);
+    }
+  }, [props.query]);
+
+  // Enhanced CSS loading detection with rate limiting
+  const useCSSLoaded = () => {
+    const [cssLoaded, setCssLoaded] = useState(false);
+    const maxRetries = useRef(20);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+    useEffect(() => {
+      let retryCount = 0;
+
+      const checkCSS = () => {
+        if (retryCount >= maxRetries.current) {
+          setCssLoaded(true);
+          return;
+        }
+
+        const testEl = document.createElement('div');
+        testEl.className = 'osdQueryBar';
+        testEl.style.visibility = 'hidden';
+        document.body.appendChild(testEl);
+
+        const styles = window.getComputedStyle(testEl);
+        const hasStyles = styles.padding !== '0px' || styles.paddingLeft !== '0px';
+
+        document.body.removeChild(testEl);
+
+        if (hasStyles) {
+          setCssLoaded(true);
+        } else {
+          retryCount++;
+          timeoutRef.current = setTimeout(checkCSS, 100);
+        }
+      };
+
+      checkCSS();
+
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+      };
+    }, []);
+
+    return cssLoaded;
+  };
+
+  const cssLoaded = useCSSLoaded();
+
   const queryLanguage = props.query && props.query.language;
+
   const persistedLog: PersistedLog | undefined = React.useMemo(
     () =>
       queryLanguage && uiSettings && storage && appName
@@ -112,6 +193,16 @@ export default function QueryBarTopRow(props: QueryBarTopRowProps) {
       persistedLog.add(props.query.query);
     }
     event.preventDefault();
+    if (
+      props.query &&
+      typeof props.query.query === 'string' &&
+      isMalformedLuceneQuery(props.query.query)
+    ) {
+      showInvalidQueryToast();
+      setDisplayQuery(props.query);
+      onSubmit({ query: { ...props.query, query: NO_MATCH_QUERY }, dateRange: getDateRange() });
+      return;
+    }
     onSubmit({ query: props.query, dateRange: getDateRange() });
   }
 
@@ -173,14 +264,39 @@ export default function QueryBarTopRow(props: QueryBarTopRowProps) {
     }
   }
 
-  function onSubmit({ query, dateRange }: { query?: Query; dateRange: TimeRange }) {
+  function onSubmit({ query: submitQuery, dateRange }: { query?: Query; dateRange: TimeRange }) {
     handleLuceneSyntaxWarning();
 
     if (props.timeHistory) {
       props.timeHistory.add(dateRange);
     }
 
-    props.onSubmit({ query, dateRange });
+    if (!submitQuery || !submitQuery.query || typeof submitQuery.query !== 'string') {
+      props.onSubmit({ query: submitQuery, dateRange });
+      return;
+    }
+
+    if (isMalformedLuceneQuery(submitQuery.query)) {
+      showInvalidQueryToast();
+      setDisplayQuery(submitQuery);
+      props.onSubmit({ query: { ...submitQuery, query: NO_MATCH_QUERY }, dateRange });
+      return;
+    }
+
+    convertQuery(submitQuery.query)
+      .then((newQueryText) => {
+        if (!submitQuery) return;
+        const newQuery = { ...submitQuery, query: newQueryText };
+        props.onChange({ query: newQuery, dateRange });
+        props.onSubmit({ query: newQuery, dateRange });
+      })
+      .catch((err) => {
+        console.warn( // eslint-disable-line
+          'An error occurred trying to correct the provided query for capitalization.',
+          err
+        );
+        props.onSubmit({ query: submitQuery, dateRange });
+      });
   }
 
   function onInputSubmit(query: Query) {
@@ -206,9 +322,12 @@ export default function QueryBarTopRow(props: QueryBarTopRowProps) {
           disableAutoFocus={props.disableAutoFocus}
           indexPatterns={props.indexPatterns!}
           prepend={props.prepend}
-          query={props.query!}
+          query={displayQuery ?? props.query!}
           screenTitle={props.screenTitle}
-          onChange={onQueryChange}
+          onChange={(newQuery) => {
+            setDisplayQuery(newQuery);
+            onQueryChange(newQuery);
+          }}
           onChangeQueryInputFocus={onChangeQueryInputFocus}
           onSubmit={onInputSubmit}
           persistedLog={persistedLog}
@@ -384,8 +503,12 @@ export default function QueryBarTopRow(props: QueryBarTopRowProps) {
     notifications!.toasts.remove(toast);
   }
 
+  const currentQueryText =
+    props.query && props.query.query ? (props.query.query as string) : '';
+
   const classes = classNames('osdQueryBar', {
     'osdQueryBar--withDatePicker': props.showDatePicker,
+    'osdQueryBar--cssLoaded': cssLoaded,
   });
 
   const shouldUseDatePickerRef =
@@ -399,7 +522,8 @@ export default function QueryBarTopRow(props: QueryBarTopRowProps) {
         className={classes}
         responsive={!!props.showDatePicker}
         gutterSize="s"
-        justifyContent="flexEnd"
+        justifyContent={cssLoaded ? 'flexEnd' : 'flexStart'}
+        style={!cssLoaded ? { minHeight: '40px' } : undefined}
       >
         {renderQueryInput()}
         {renderSharingMetaFields()}
@@ -407,6 +531,9 @@ export default function QueryBarTopRow(props: QueryBarTopRowProps) {
           {shouldUseDatePickerRef
             ? createPortal(renderUpdateButton(), props.datePickerRef!.current!)
             : renderUpdateButton()}
+        </EuiFlexItem>
+        <EuiFlexItem grow={false}>
+          <SaveRule query={currentQueryText} disabledForLanguage={queryLanguage !== 'lucene'} />
         </EuiFlexItem>
       </EuiFlexGroup>
     </>

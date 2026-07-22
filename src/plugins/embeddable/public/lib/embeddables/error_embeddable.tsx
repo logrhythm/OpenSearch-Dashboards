@@ -57,6 +57,29 @@ export class ErrorEmbeddable extends Embeddable<EmbeddableInput, EmbeddableOutpu
   public reload() {}
 
   public render(dom: HTMLElement) {
+    const error = this.error;
+
+    // Suppress rendering for abort errors — panels should show empty, not an error state
+    if (typeof error !== 'string') {
+      if (error.name === 'AbortError') return;
+      if (
+        error.message &&
+        (error.message.includes('abort') ||
+          error.message.includes('Request aborted') ||
+          error.message.includes('The user aborted'))
+      )
+        return;
+      // Suppress for query syntax errors — showInvalidQueryToast() handles user communication
+      if (
+        error.name === 'QuerySyntaxError' ||
+        error.message?.includes('search_phase_execution_exception') ||
+        error.message?.includes('all shards failed') ||
+        error.message?.includes('parsing_exception') ||
+        error.message?.includes('query_shard_exception')
+      )
+        return;
+    }
+
     const title = typeof this.error === 'string' ? this.error : this.error.message;
     this.dom = dom;
     ReactDOM.render(

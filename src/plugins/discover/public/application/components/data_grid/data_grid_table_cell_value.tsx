@@ -17,6 +17,9 @@ import { stringify } from '@osd/std';
 import { IndexPattern } from '../../../opensearch_dashboards_services';
 import { OpenSearchSearchHit } from '../../doc_views/doc_views_types';
 import { shortenDottedString } from '../../helpers';
+import { shouldBindFormat } from '../../../../../../netmon/field_formats/should_bind_format';
+import AttachDownload from '../../../../../../netmon/components/attach_download';
+import CaptureDownload from '../../../../../../netmon/components/capture_download';
 
 export function fetchSourceTypeDataCell(
   idxPattern: IndexPattern,
@@ -78,6 +81,23 @@ export const fetchTableDataCell = (
 
   if (fieldInfo?.type === '_source') {
     return fetchSourceTypeDataCell(idxPattern, singleRow, columnId, isDetails, isShortDots);
+  }
+
+  // Render Attach/Captured fields as React components
+  if (shouldBindFormat(columnId)) {
+    const src = ((singleRow as any)._source || {}) as any;
+    if (columnId === 'Attach') {
+      return src.Attach ? (
+        <AttachDownload
+          session={src.Session || ''}
+          fileName={src.Filename || ''}
+          captured={!!src.Captured}
+        />
+      ) : null;
+    }
+    if (columnId === 'Captured') {
+      return src.Captured ? <CaptureDownload session={src.Session || ''} /> : null;
+    }
   }
 
   const formattedValue = idxPattern.formatField(singleRow, columnId);
