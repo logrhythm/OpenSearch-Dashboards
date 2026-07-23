@@ -31,8 +31,8 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { EuiButton, EuiButtonIcon, EuiPopover } from '@elastic/eui';
-import { SelectedCaptureSessions } from '@logrhythm/nm-web-shared/services/selected_capture_sessions';
-import { startPcapDownload, FileType } from '@logrhythm/nm-web-shared/services/session_files';
+import SelectedCaptureSessions from '@logrhythm/nm-web-shared/services/selected_capture_sessions';
+import { startPcapDownload } from '@logrhythm/nm-web-shared/services/session_files';
 import { toastNotifications } from '../services/notifications';
 import FileDownloadModal from './file_download/file_download_modal';
 
@@ -68,7 +68,7 @@ const CaptureHeader = (props: CaptureHeaderProps) => {
   const [downloadId, setDownloadId] = useState('');
 
   useEffect(() => {
-    const unsub = SelectedCaptureSessions.subscribeAll((sessions) => {
+    const unsub = SelectedCaptureSessions.subscribeAll((sessions: any[]) => {
       setSelectedCount(sessions.length);
     });
 
@@ -172,7 +172,7 @@ const CaptureHeader = (props: CaptureHeaderProps) => {
       <small>{selectedCount} selected</small>
       <FileDownloadModal
         downloadId={downloadId}
-        fileType={FileType.PCAP}
+        fileType={'pcap'}
         onClose={() => setDownloadId('')}
       />
     </>

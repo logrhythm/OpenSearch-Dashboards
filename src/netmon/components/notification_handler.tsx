@@ -38,7 +38,7 @@ const NotificationHandler = () => {
   const { enqueueError } = useSnackbar();
 
   useEffect(() => {
-    notifications.forEach((n: { text: string; type?: string }) => {
+    notifications.forEach((n: { text: any; type?: string }) => {
       enqueueError(<div>{n.text}</div>);
     });
   }, [notifications, enqueueError]);

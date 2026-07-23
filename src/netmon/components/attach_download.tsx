@@ -31,7 +31,7 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { EuiButtonIcon } from '@elastic/eui';
-import { startAttachmentDownload, FileType } from '@logrhythm/nm-web-shared/services/session_files';
+import { startAttachmentDownload } from '@logrhythm/nm-web-shared/services/session_files';
 import { toastNotifications } from '../services/notifications';
 import FileDownloadModal from './file_download/file_download_modal';
 
@@ -107,7 +107,7 @@ const AttachDownload = (props: AttachDownloadProps) => {
       </div>
       <FileDownloadModal
         downloadId={downloadId}
-        fileType={FileType.RECONSTRUCTION}
+        fileType={'reconstruction'}
         onClose={() => setDownloadId('')}
       />
     </>

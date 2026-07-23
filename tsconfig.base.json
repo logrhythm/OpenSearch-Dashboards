@@ -47,6 +47,8 @@
     "resolveJsonModule": true,
     // Disallow inconsistently-cased references to the same file.
     "forceConsistentCasingInFileNames": true,
+    // Skip type checking of declaration files in node_modules (avoids notistack/@material-ui type incompatibilities)
+    "skipLibCheck": true,
     // Forbid unused local variables as the rule was deprecated by ts-lint
     "noUnusedLocals": true,
     // Provide full support for iterables in for..of, spread and destructuring when targeting ES5 or ES3.

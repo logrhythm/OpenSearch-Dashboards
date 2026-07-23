@@ -31,8 +31,8 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { EuiButtonIcon, EuiCheckbox } from '@elastic/eui';
-import { SelectedCaptureSessions } from '@logrhythm/nm-web-shared/services/selected_capture_sessions';
-import { startPcapDownload, FileType } from '@logrhythm/nm-web-shared/services/session_files';
+import SelectedCaptureSessions from '@logrhythm/nm-web-shared/services/selected_capture_sessions';
+import { startPcapDownload } from '@logrhythm/nm-web-shared/services/session_files';
 import { toastNotifications } from '../services/notifications';
 import FileDownloadModal from './file_download/file_download_modal';
 
@@ -103,7 +103,7 @@ const CaptureDownload = (props: AttachDownloadProps) => {
       </div>
       <FileDownloadModal
         downloadId={downloadId}
-        fileType={FileType.PCAP}
+        fileType={'pcap'}
         onClose={() => setDownloadId('')}
       />
     </>

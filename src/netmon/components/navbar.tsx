@@ -102,9 +102,11 @@ const LogRhythmNavbar = () => {
           autoHideDuration={3000}
           hideIconVariant={true}
         >
-          <Navbar />
-          <NotificationHandler />
-          <BlockingProcessModal />
+          <>
+            <Navbar />
+            <NotificationHandler />
+            <BlockingProcessModal />
+          </>
         </SnackbarProvider>
       </BlockingProcessContext.Provider>
     </AuthContext.Provider>
