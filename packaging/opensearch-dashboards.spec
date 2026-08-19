@@ -27,6 +27,15 @@ cd %{name}
 /usr/bin/yarn osd bootstrap
 NODE_OPTIONS="--max-old-space-size=8192" node scripts/build --rpm --skip-archives --release --verbose --allow-root
 %pre
+# Stop and disable the legacy kibana service before installing OpenSearch Dashboards.
+# This releases the port 5601 binding so opensearch-dashboards can start cleanly.
+if systemctl is-active --quiet kibana 2>/dev/null; then
+    echo "Stopping kibana service before OpenSearch Dashboards installation."
+    systemctl stop kibana
+fi
+if systemctl is-enabled --quiet kibana 2>/dev/null; then
+    systemctl disable kibana
+fi
 getent group nginx > /dev/null || groupadd -f -g 904 -r nginx
 if ! getent passwd nginx >/dev/null ; then
     if ! getent passwd 904 >/dev/null ; then
