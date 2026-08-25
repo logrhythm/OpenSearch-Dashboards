@@ -28,7 +28,7 @@
  * which can be found through this page: https://logrhythm.com/about/logrhythm-terms-and-conditions/
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { SnackbarProvider } from 'notistack';
 import { makeStyles } from '@material-ui/styles';
 import { AuthContext, AuthContextValue } from '@logrhythm/nm-web-shared/contexts/auth_context';
@@ -69,6 +69,39 @@ const LogRhythmNavbar = () => {
 
   const checkingToken = useSessionSync('token');
   const checkingNotifications = useSessionSync('notificationsAlreadySeen');
+
+  // Bootstrap JS is not bundled in OSD, so we polyfill data-toggle="dropdown"
+  // with a delegated click handler that toggles the "open" class on the parent.
+  const handleDropdownToggle = useCallback((e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const toggle = target.closest('[data-toggle="dropdown"]') as HTMLElement | null;
+    if (!toggle) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const parent = toggle.closest('.dropdown') as HTMLElement | null;
+    if (!parent) return;
+    const wasOpen = parent.classList.contains('open');
+    // Close all open dropdowns first
+    document.querySelectorAll('.dropdown.open').forEach((el) => el.classList.remove('open'));
+    if (!wasOpen) parent.classList.add('open');
+  }, []);
+
+  const handleCloseDropdowns = useCallback((e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    // Close when clicking outside any dropdown, or on a dropdown item (navigation)
+    if (!target.closest('.dropdown') || target.closest('.dropdown-item')) {
+      document.querySelectorAll('.dropdown.open').forEach((el) => el.classList.remove('open'));
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('click', handleDropdownToggle, true);
+    document.addEventListener('click', handleCloseDropdowns, false);
+    return () => {
+      document.removeEventListener('click', handleDropdownToggle, true);
+      document.removeEventListener('click', handleCloseDropdowns, false);
+    };
+  }, [handleDropdownToggle, handleCloseDropdowns]);
 
   const [blockingProcessMsg, setBlockingProcessMsg] = useState<string>('');
   const blockingProcessContextState: BlockingProcessContextState = {

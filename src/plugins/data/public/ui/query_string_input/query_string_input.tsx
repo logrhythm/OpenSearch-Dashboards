@@ -32,7 +32,7 @@ import React, { Component, RefObject, createRef } from 'react';
 import { i18n } from '@osd/i18n';
 import classNames from 'classnames';
 import {
-  EuiCompressedTextArea,
+  EuiTextArea,
   EuiOutsideClickDetector,
   PopoverAnchorPosition,
   EuiFlexGroup,
@@ -622,7 +622,7 @@ export default class QueryStringInputUI extends Component<Props, State> {
     };
     const ariaCombobox = { ...isSuggestionsVisible, role: 'combobox' };
     const className = classNames(
-      'euiFormControlLayout euiFormControlLayout--group euiFormControlLayout--compressed osdQueryBar__wrap',
+      'euiFormControlLayout euiFormControlLayout--group osdQueryBar__wrap',
       this.props.className
     );
 
@@ -647,7 +647,7 @@ export default class QueryStringInputUI extends Component<Props, State> {
               data-test-subj="queryBarInputContainer"
               ref={this.queryBarInputDivRefInstance}
             >
-              <EuiCompressedTextArea
+              <EuiTextArea
                 placeholder={
                   this.props.placeholder ||
                   i18n.translate('data.query.queryBar.searchInputPlaceholder', {
@@ -691,7 +691,7 @@ export default class QueryStringInputUI extends Component<Props, State> {
                 isInvalid={this.props.isInvalid}
               >
                 {this.getQueryString()}
-              </EuiCompressedTextArea>
+              </EuiTextArea>
             </div>
             <EuiPortal>
               <SuggestionsComponent

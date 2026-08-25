@@ -374,7 +374,8 @@ export default function QueryBarTopRow(props: QueryBarTopRowProps) {
         aria-label={i18n.translate('data.query.queryBar.querySubmitButtonLabel', {
           defaultMessage: 'Submit query',
         })}
-        compressed={true}
+        compressed={false}
+        fill
       />
     );
 
@@ -441,7 +442,7 @@ export default function QueryBarTopRow(props: QueryBarTopRowProps) {
           isAutoRefreshOnly={props.showAutoRefreshOnly}
           className="osdQueryBar__datePicker"
           data-test-subj="osdQueryBarDatePicker"
-          compressed={true}
+          compressed={false}
         />
       </EuiFlexItem>
     );
@@ -503,8 +504,7 @@ export default function QueryBarTopRow(props: QueryBarTopRowProps) {
     notifications!.toasts.remove(toast);
   }
 
-  const currentQueryText =
-    props.query && props.query.query ? (props.query.query as string) : '';
+  const currentQueryText = props.query && props.query.query ? (props.query.query as string) : '';
 
   const classes = classNames('osdQueryBar', {
     'osdQueryBar--withDatePicker': props.showDatePicker,

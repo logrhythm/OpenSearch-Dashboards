@@ -89,11 +89,11 @@ function TopNavMenuLegacyItem(props: TopNavMenuLegacyData) {
     );
   } else {
     component = props.emphasize ? (
-      <EuiButton size="s" {...commonButtonProps}>
+      <EuiButton size="m" {...commonButtonProps}>
         {upperFirst(props.label || props.id!)}
       </EuiButton>
     ) : (
-      <EuiHeaderLink size="xs" color="primary" {...commonButtonProps}>
+      <EuiHeaderLink size="m" color="primary" {...commonButtonProps}>
         {upperFirst(props.label || props.id!)}
       </EuiHeaderLink>
     );
@@ -128,7 +128,7 @@ export function TopNavMenuItem(props: TopNavMenuData) {
           <>
             {/* eslint-disable-next-line @elastic/eui/href-or-on-click */}
             <EuiButton
-              size="s"
+              size="m"
               iconType={props.iconType}
               iconSide={props.iconSide}
               className={className}

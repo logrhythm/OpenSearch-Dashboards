@@ -27,18 +27,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import 'lr-style/dist/lr-style.css';
+import '@logrhythm/icons/icons.css';
 import {
   EuiFlexGroup,
   EuiFlexItem,
   EuiHeader,
-  EuiHeaderProps,
   EuiHeaderSection,
   EuiHeaderSectionItem,
   EuiHeaderSectionItemButton,
   EuiHeaderSectionItemButtonProps,
-  EuiHideFor,
   EuiIcon,
-  EuiShowFor,
   EuiTitle,
   htmlIdGenerator,
 } from '@elastic/eui';
@@ -47,7 +46,6 @@ import classnames from 'classnames';
 import React, { createRef, useCallback, useMemo, useState } from 'react';
 import useObservable from 'react-use/lib/useObservable';
 import { Observable } from 'rxjs';
-import { LoadingIndicator } from '../';
 import {
   ChromeBadge,
   ChromeBreadcrumb,
@@ -76,10 +74,7 @@ import { HeaderActionMenu } from './header_action_menu';
 import { HeaderBadge } from './header_badge';
 import { HeaderBreadcrumbs } from './header_breadcrumbs';
 import { HeaderControlsContainer } from './header_controls_container';
-import { HeaderHelpMenu } from './header_help_menu';
-import { HeaderLogo } from './header_logo';
 import { HeaderNavControls } from './header_nav_controls';
-import { HomeLoader } from './home_loader';
 import { RecentItems } from './recent_items';
 import { GlobalSearchCommand } from '../../global_search';
 import LogRhythmNavbar from '../../../../../netmon/components/navbar';
@@ -138,14 +133,14 @@ const hasValue = (value: any) => {
 
 export function Header({
   http,
-  opensearchDashboardsVersion,
-  opensearchDashboardsDocLink,
+  opensearchDashboardsVersion: _opensearchDashboardsVersion,
+  opensearchDashboardsDocLink: _opensearchDashboardsDocLink,
   application,
   basePath,
   onIsLockedUpdate,
   homeHref,
-  branding,
-  survey,
+  branding: _branding,
+  survey: _survey,
   logos,
   collapsibleNavHeaderRender,
   navGroupEnabled,
@@ -198,59 +193,13 @@ export function Header({
   );
 
   if (!isVisible) {
-    return <LoadingIndicator loadingCount$={observables.loadingCount$} showAsBar />;
+    return null;
   }
 
   const toggleCollapsibleNavRef = createRef<HTMLButtonElement & { euiAnimate: () => void }>();
   const navId = htmlIdGenerator()();
   const className = classnames('hide-for-sharing', 'headerGlobalNav');
-  const { useExpandedHeader = true } = branding;
   const useApplicationHeader = headerVariant === HeaderVariant.APPLICATION;
-
-  const expandedHeaderColorScheme: EuiHeaderProps['theme'] = 'dark';
-
-  const renderLegacyExpandedHeader = () => (
-    <EuiHeader
-      className="expandedHeader"
-      theme={expandedHeaderColorScheme}
-      style={sidecarPaddingStyle}
-      position="fixed"
-      sections={[
-        {
-          items: [
-            <HeaderLogo
-              href={homeHref}
-              forceNavigation$={observables.forceAppSwitcherNavigation$}
-              navLinks$={observables.navLinks$}
-              navigateToApp={application.navigateToApp}
-              branding={branding}
-              logos={logos}
-              /* This color-scheme should match the `theme` of the parent EuiHeader */
-              backgroundColorScheme={expandedHeaderColorScheme}
-            />,
-          ],
-          borders: 'none',
-        },
-        {
-          items: [
-            <EuiShowFor sizes={['m', 'l', 'xl', 'xxl', 'xxxl']}>
-              <HeaderNavControls navControls$={observables.navControlsExpandedCenter$} />
-            </EuiShowFor>,
-          ],
-          borders: 'none',
-        },
-        {
-          items: [
-            <EuiHideFor sizes={['m', 'l', 'xl', 'xxl', 'xxxl']}>
-              <HeaderNavControls navControls$={observables.navControlsExpandedCenter$} />
-            </EuiHideFor>,
-            <HeaderNavControls navControls$={observables.navControlsExpandedRight$} />,
-          ],
-          borders: 'none',
-        },
-      ]}
-    />
-  );
 
   const renderBreadcrumbs = (renderFullLength?: boolean, hideTrailingSeparator?: boolean) => (
     <HeaderBreadcrumbs
@@ -479,18 +428,6 @@ export function Header({
     );
   };
 
-  const renderHelp = () => (
-    <EuiHeaderSectionItem border="left">
-      <HeaderHelpMenu
-        helpExtension$={observables.helpExtension$}
-        helpSupportUrl$={observables.helpSupportUrl$}
-        opensearchDashboardsDocLink={opensearchDashboardsDocLink}
-        opensearchDashboardsVersion={opensearchDashboardsVersion}
-        surveyLink={survey}
-      />
-    </EuiHeaderSectionItem>
-  );
-
   const renderRecentItems = () => (
     <EuiHeaderSectionItem border={useUpdatedHeader ? 'none' : 'right'}>
       <RecentItems
@@ -519,39 +456,57 @@ export function Header({
   const actionMenu = renderActionMenu();
   const badge = renderBadge();
 
+  // Last breadcrumb = current page title (e.g. dashboard name). Slice off parent crumbs.
+  const pageTitle = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].text : '';
+
   const renderLegacyHeader = () => (
-    <EuiHeader position="fixed" className="primaryHeader" style={sidecarPaddingStyle}>
-      <EuiHeaderSection grow={false}>
-        <EuiHeaderSectionItem border="right" className="header__toggleNavButtonSection">
-          {renderNavToggle()}
-        </EuiHeaderSectionItem>
+    <>
+      {/* Row 1: Page title (dashboard name) — full width, below 50px LR navbar */}
+      <div
+        style={{
+          position: 'fixed',
+          top: '50px',
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          height: '36px',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 16px',
+          backgroundColor: '#fff',
+          fontSize: '16px',
+          fontWeight: 600,
+          overflow: 'hidden',
+          whiteSpace: 'nowrap' as const,
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {pageTitle}
+      </div>
 
-        {leftControls}
-
-        {/* Home loader left */}
-        <EuiHeaderSectionItem border="right">
-          <HomeLoader
-            href={homeHref}
-            forceNavigation$={observables.forceAppSwitcherNavigation$}
-            navLinks$={observables.navLinks$}
-            navigateToApp={application.navigateToApp}
-            branding={branding}
-            logos={logos}
-            loadingCount$={observables.loadingCount$}
-          />
-        </EuiHeaderSectionItem>
-      </EuiHeaderSection>
-
-      {renderBreadcrumbs()}
-      {badge}
-
-      <EuiHeaderSection side="right">
+      {/* Row 2: Action buttons (fullscreen, share, clone, edit) rendered via portal.
+          nm-action-row class strips EuiHeaderSectionItem borders that don't apply
+          outside a real EuiHeader container. */}
+      <div
+        className="nm-action-row"
+        style={{
+          position: 'fixed',
+          top: '86px',
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          minHeight: '40px',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 4px',
+          backgroundColor: '#fff',
+        }}
+      >
         {actionMenu}
         {centerControls}
         {rightControls}
-        {renderHelp()}
-      </EuiHeaderSection>
-    </EuiHeader>
+      </div>
+    </>
   );
 
   const renderPageHeader = () => (
@@ -648,8 +603,11 @@ export function Header({
 
   return (
     <>
-      {/* LogRhythm top navigation bar — rendered as fixed overlay above OSD header */}
+      {/* LogRhythm top navigation bar — rendered as fixed overlay above OSD header.
+          Background is set inline so it paints immediately before React mounts the
+          Navbar component, preventing a blank flash. */}
       <div
+        id="nm-navbar-container"
         style={{
           position: 'fixed',
           top: 0,
@@ -657,40 +615,75 @@ export function Header({
           right: 0,
           zIndex: 19999,
           height: '50px',
-          backgroundColor: 'inherit',
           pointerEvents: 'auto',
+          overflow: 'visible',
+          background: document.documentElement.classList.contains('Night')
+            ? 'linear-gradient(#575a5c, #424446)'
+            : 'linear-gradient(#e6e6e6, #d4d4d4)',
         }}
       >
         <LogRhythmNavbar />
       </div>
 
-      {/* CSS fixes for proper positioning and dropdown visibility */}
+      {/* CSS for LR navbar positioning and dropdown visibility */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
           body, body.coreSystemRootDomElement {
-            margin-top: 50px !important;
-            position: static !important;
+            margin-top: 126px !important;
           }
           .navbar.navbar-fixed-top {
             z-index: 19999 !important;
-            overflow: visible !important;
-            height: 50px !important;
-            min-height: 50px !important;
-          }
-          .navbar .navbar-header, .navbar .container-fluid, .navbar-collapse {
             overflow: visible !important;
           }
           .navbar .dropdown-menu {
             z-index: 20000 !important;
             position: absolute !important;
-            overflow: visible !important;
+            pointer-events: auto !important;
           }
-          .globalNavBars, #globalHeaderBars {
-            margin-top: 0 !important;
+          /* Ensure clicks on dropdown items are not blocked by fixed page-content rows */
+          .navbar .open > .dropdown-menu {
+            display: block !important;
           }
-          #osd-top-nav-helper {
+          #osd-top-nav-helper { display: none !important; }
+
+          /* Strip EuiHeaderSectionItem borders inside the action-buttons row */
+          .nm-action-row .ouiHeaderSectionItem::after,
+          .nm-action-row .ouiHeaderSectionItem::before,
+          .nm-action-row .euiHeaderSectionItem::after,
+          .nm-action-row .euiHeaderSectionItem::before {
             display: none !important;
+          }
+          .nm-action-row .ouiHeaderSectionItem,
+          .nm-action-row .euiHeaderSectionItem {
+            border: none !important;
+            box-shadow: none !important;
+          }
+
+          /* Match button/link text size to body text (16px).
+             Fullscreen/Share/Clone/Edit are inside nm-action-row (portal).
+             Refresh (ouiSuperUpdateButton) and Save Rule (ouiButton fill) render
+             in-place via renderSearchBar(), outside nm-action-row, so we target
+             them via their own stable container classes. */
+          .nm-action-row .ouiButton__text,
+          .nm-action-row .euiButton__text,
+          .nm-action-row .ouiButtonEmpty__text,
+          .nm-action-row .euiButtonEmpty__text {
+            font-size: 16px !important;
+          }
+          .ouiSuperUpdateButton__text,
+          .euiSuperUpdateButton__text {
+            font-size: 16px !important;
+          }
+          .osdQueryBar .ouiButton__text,
+          .osdQueryBar .euiButton__text {
+            font-size: 16px !important;
+          }
+
+          /* Search textarea — vertically center single-line text within the control height */
+          .osdQueryBar__textarea {
+            padding-top: 9px !important;
+            padding-bottom: 9px !important;
           }
         `,
         }}
@@ -698,7 +691,7 @@ export function Header({
 
       <header className={className} data-test-subj="headerGlobalNav">
         <div id="globalHeaderBars">
-          {!useUpdatedHeader && useExpandedHeader && renderLegacyExpandedHeader()}
+          {/* renderLegacyExpandedHeader omitted — replaced by LogRhythm navbar */}
           {useUpdatedHeader ? renderHeader() : renderLegacyHeader()}
         </div>
 
