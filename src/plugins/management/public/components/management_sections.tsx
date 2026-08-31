@@ -64,7 +64,7 @@ const sectionTip = i18n.translate('management.sections.section.tip', {
 });
 
 const opensearchDashboardsTitle = i18n.translate('management.sections.opensearchDashboardsTitle', {
-  defaultMessage: 'Dashboards Management',
+  defaultMessage: 'NetMon-UI',
 });
 
 const opensearchDashboardsTip = i18n.translate('management.sections.opensearchDashboardsTip', {

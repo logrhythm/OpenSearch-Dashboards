@@ -28,7 +28,7 @@
  * under the License.
  */
 
-import React, { ReactNode, useState } from 'react';
+import React, { useState } from 'react';
 import { i18n } from '@osd/i18n';
 import { sortBy } from 'lodash';
 
@@ -37,9 +37,6 @@ import {
   EuiSideNav,
   EuiScreenReaderOnly,
   EuiSideNavItemType,
-  EuiFlexGroup,
-  EuiFlexItem,
-  EuiToolTip,
   EuiBadge,
 } from '@elastic/eui';
 import { AppMountParameters } from 'opensearch-dashboards/public';
@@ -58,7 +55,7 @@ interface ManagementSidebarNavProps {
 }
 
 const headerLabel = i18n.translate('management.nav.label', {
-  defaultMessage: 'Management',
+  defaultMessage: 'NetMon-UI',
 });
 
 const navMenuLabel = i18n.translate('management.nav.menu', {
@@ -75,11 +72,18 @@ export const ManagementSidebarNav = ({
   const [isSideNavOpenOnMobile, setIsSideNavOpenOnMobile] = useState(false);
   const toggleOpenOnMobile = () => setIsSideNavOpenOnMobile(!isSideNavOpenOnMobile);
 
+  // Only show the opensearch-dashboards section with the three NetMon-relevant apps.
+  const ALLOWED_APP_IDS = new Set(['indexPatterns', 'objects', 'settings']);
+
   const sectionsToNavItems = (managementSections: ManagementSection[]) => {
     const sortedManagementSections = sortBy(managementSections, 'order');
 
     return sortedManagementSections.reduce<Array<EuiSideNavItemType<any>>>((acc, section) => {
-      const apps = sortBy(section.getAppsEnabled(), 'order');
+      if (section.id !== 'opensearch-dashboards') return acc;
+
+      const apps = sortBy(section.getAppsEnabled(), 'order').filter((app) =>
+        ALLOWED_APP_IDS.has(app.id)
+      );
 
       if (apps.length) {
         acc.push({
@@ -99,23 +103,6 @@ export const ManagementSidebarNav = ({
         ...reactRouterNavigate(history, app.basePath),
       }),
     }));
-
-  interface TooltipWrapperProps {
-    text: ReactNode | string;
-    tip?: string;
-  }
-
-  const TooltipWrapper = ({ text, tip }: TooltipWrapperProps) => (
-    <EuiToolTip content={tip} position="right">
-      <EuiFlexGroup alignItems="center" gutterSize="s" responsive={false}>
-        <EuiFlexItem grow={false}>{text}</EuiFlexItem>
-
-        <EuiFlexItem grow={false}>
-          <EuiIcon type="questionInCircle" />
-        </EuiFlexItem>
-      </EuiFlexGroup>
-    </EuiToolTip>
-  );
 
   const TitleWithExperimentalBadge = ({ title }: any) => (
     <>
@@ -138,7 +125,7 @@ export const ManagementSidebarNav = ({
     );
     return {
       id: item.id,
-      name: item.tip ? <TooltipWrapper text={name} tip={item.tip} /> : name,
+      name,
       isSelected: item.id === selectedId,
       icon: iconType ? <EuiIcon type={iconType} size="m" /> : undefined,
       'data-test-subj': item.id,
