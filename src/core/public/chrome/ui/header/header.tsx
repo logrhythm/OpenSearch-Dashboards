@@ -43,7 +43,7 @@ import {
 } from '@elastic/eui';
 import { i18n } from '@osd/i18n';
 import classnames from 'classnames';
-import React, { createRef, useCallback, useMemo, useState } from 'react';
+import React, { createRef, useCallback, useEffect, useMemo, useState } from 'react';
 import useObservable from 'react-use/lib/useObservable';
 import { Observable } from 'rxjs';
 import {
@@ -77,7 +77,12 @@ import { HeaderControlsContainer } from './header_controls_container';
 import { HeaderNavControls } from './header_nav_controls';
 import { RecentItems } from './recent_items';
 import { GlobalSearchCommand } from '../../global_search';
-import LogRhythmNavbar from '../../../../../netmon/components/navbar';
+import { LogRhythmNavbar } from '../../../../../netmon/components/navbar';
+import {
+  NmLeftNav,
+  APPS_WITHOUT_TITLE,
+  APPS_WITHOUT_ACTIONROW,
+} from '../../../../../netmon/components/nm_left_nav';
 
 export interface HeaderProps {
   http: HttpStart;
@@ -171,12 +176,20 @@ export function Header({
 
   const currentBadgeControls = useObservableValue(application.currentBadgeControls$);
   const observableBadge = useObservable(observables.badge$);
+  const currentAppId = useObservable(application.currentAppId$, '');
 
   const sidecarPaddingStyle = useMemo(() => {
     return getOsdSidecarPaddingStyle(sidecarConfig);
   }, [sidecarConfig]);
 
   const isNavOpen = useUpdatedHeader ? isLocked : isNavOpenState;
+
+  // Keep the container white on the very first paint; the gradient shows once
+  // the navbar component has had a chance to render from its cached auth state.
+  const [navbarReady, setNavbarReady] = useState(false);
+  useEffect(() => {
+    setNavbarReady(true);
+  }, []);
 
   const setIsNavOpen = useCallback(
     (value) => {
@@ -456,56 +469,103 @@ export function Header({
   const actionMenu = renderActionMenu();
   const badge = renderBadge();
 
-  // Last breadcrumb = current page title (e.g. dashboard name). Slice off parent crumbs.
-  const pageTitle = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].text : '';
+  // Last breadcrumb = page title. On the dashboards listing breadcrumbs = ["Dashboards"] (1 item).
+  // On an open dashboard breadcrumbs = ["Dashboards", "Name"] (2+ items) — show the dashboard name.
+  const pageTitle = breadcrumbs.length > 1 ? breadcrumbs[breadcrumbs.length - 1].text : '';
+
+  // Hide the fixed title row for apps that render their own page header,
+  // and also for the dashboards listing (no specific dashboard open).
+  const hideTitleRow =
+    APPS_WITHOUT_TITLE.has(currentAppId ?? '') ||
+    (currentAppId === 'dashboards' && breadcrumbs.length <= 1);
+
+  // Some apps (Dev Tools, Management) have no query bar — don't render the action row at all.
+  // Body padding-top = 50px (navbar only) so content starts right below.
+  const hideActionRow = APPS_WITHOUT_ACTIONROW.has(currentAppId ?? '');
+
+  // Compute the total header height that content must be offset below:
+  //   50px  (LR navbar)
+  // + 36px  (title row, when shown)
+  // + 40px  (action row, when shown)
+  const topOffset = hideActionRow ? 50 : hideTitleRow ? 90 : 126;
 
   const renderLegacyHeader = () => (
     <>
-      {/* Row 1: Page title (dashboard name) — full width, below 50px LR navbar */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '50px',
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          height: '36px',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 16px',
-          backgroundColor: '#fff',
-          fontSize: '16px',
-          fontWeight: 600,
-          overflow: 'hidden',
-          whiteSpace: 'nowrap' as const,
-          textOverflow: 'ellipsis',
-        }}
-      >
-        {pageTitle}
-      </div>
+      {/* Permanent left sidebar with nav icons */}
+      <NmLeftNav
+        navLinks$={observables.navLinks$}
+        recentlyAccessed$={observables.recentlyAccessed$}
+        basePath={basePath}
+        navigateToApp={application.navigateToApp}
+        navigateToUrl={application.navigateToUrl}
+        appId$={application.currentAppId$}
+      />
 
-      {/* Row 2: Action buttons (fullscreen, share, clone, edit) rendered via portal.
-          nm-action-row class strips EuiHeaderSectionItem borders that don't apply
-          outside a real EuiHeader container. */}
-      <div
-        className="nm-action-row"
-        style={{
-          position: 'fixed',
-          top: '86px',
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          minHeight: '40px',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 4px',
-          backgroundColor: '#fff',
+      {/* Row 1: Page title — shown only when a specific dashboard is open */}
+      {!hideTitleRow && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '50px',
+            left: '48px',
+            right: 0,
+            zIndex: 1000,
+            height: '36px',
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 8px',
+            backgroundColor: '#fff',
+            fontSize: '16px',
+            fontWeight: 600,
+            overflow: 'hidden',
+            whiteSpace: 'nowrap' as const,
+            textOverflow: 'ellipsis',
+          }}
+        >
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{pageTitle}</span>
+        </div>
+      )}
+
+      {/* Dynamic overrides: body padding-top and app-wrapper height based on topOffset. */}
+      <style
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: `
+        body, body.coreSystemRootDomElement,
+        body:not(.headerIsExpanded):not(.headerIsDense),
+        body.euiBody--headerIsFixed,
+        body.ouiBody--headerIsFixed {
+          padding-top: ${topOffset}px !important;
+        }
+        .app-wrapper {
+          min-height: calc(100vh - ${topOffset}px) !important;
+        }
+      `,
         }}
-      >
-        {actionMenu}
-        {centerControls}
-        {rightControls}
-      </div>
+      />
+
+      {/* Row 2: Action buttons + search bar — hidden for apps that have no query bar */}
+      {!hideActionRow && (
+        <div
+          className="nm-action-row"
+          style={{
+            position: 'fixed',
+            top: hideTitleRow ? '50px' : '86px',
+            left: '48px',
+            right: 0,
+            zIndex: 1000,
+            minHeight: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 4px',
+            backgroundColor: '#fff',
+          }}
+        >
+          {actionMenu}
+          {centerControls}
+          {rightControls}
+        </div>
+      )}
     </>
   );
 
@@ -617,9 +677,11 @@ export function Header({
           height: '50px',
           pointerEvents: 'auto',
           overflow: 'visible',
-          background: document.documentElement.classList.contains('Night')
-            ? 'linear-gradient(#575a5c, #424446)'
-            : 'linear-gradient(#e6e6e6, #d4d4d4)',
+          background: navbarReady
+            ? document.documentElement.classList.contains('Night')
+              ? 'linear-gradient(#575a5c, #424446)'
+              : 'linear-gradient(#e6e6e6, #d4d4d4)'
+            : '#fff',
         }}
       >
         <LogRhythmNavbar />
@@ -627,10 +689,75 @@ export function Header({
 
       {/* CSS for LR navbar positioning and dropdown visibility */}
       <style
+        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{
           __html: `
           body, body.coreSystemRootDomElement {
-            margin-top: 126px !important;
+            margin-top: 0 !important;
+            padding-top: 90px !important;
+            padding-left: 48px !important;
+            background-color: #fff !important;
+          }
+          /* White background for all page layout containers */
+          .euiPage, .ouiPage,
+          .euiPageContent, .ouiPageContent,
+          .euiPageBody, .ouiPageBody,
+          .euiPageSideBar, .ouiPageSideBar,
+          .euiPageTemplate, .ouiPageTemplate,
+          .euiPageTemplate__panelled, .euiPageTemplate__centeredContent,
+          .application {
+            background-color: #fff !important;
+          }
+          /* White background on ALL form controls, inputs, textareas, and date pickers.
+             Use * child selector too so inner wrappers are covered. */
+          .euiFormControlLayout, .ouiFormControlLayout,
+          .euiFormControlLayout--group, .ouiFormControlLayout--group,
+          .euiFormControlLayout__childrenWrapper,
+          .ouiFormControlLayout__childrenWrapper,
+          .euiFieldText, .ouiFieldText,
+          .euiFieldSearch, .ouiFieldSearch,
+          .euiFieldNumber, .ouiFieldNumber,
+          .euiTextArea, .ouiTextArea,
+          .euiSelect, .ouiSelect,
+          .euiSuperDatePicker, .ouiSuperDatePicker,
+          .euiDatePickerRange, .ouiDatePickerRange,
+          .euiSuperDatePickerShowDatesButton,
+          .ouiSuperDatePickerShowDatesButton,
+          .euiSuperDatePickerToggleQuickSelectButton,
+          .ouiSuperDatePickerToggleQuickSelectButton,
+          .osdQueryBar__wrap,
+          .osdQueryBar__textareaWrap,
+          .globalQueryBar {
+            background-color: #fff !important;
+          }
+          /* White on header/toolbar link containers */
+          .euiHeaderLinks, .ouiHeaderLinks,
+          .euiHeaderLinks__list, .ouiHeaderLinks__list,
+          .euiHeader, .ouiHeader {
+            background-color: #fff !important;
+          }
+          /* White on all sidebar/nav containers */
+          .euiSideNav, .ouiSideNav,
+          .mgtSideBarNav,
+          .euiCollapsibleNavGroup, .ouiCollapsibleNavGroup {
+            background-color: #fff !important;
+          }
+          /* Subtle uniform border on all search-bar controls so they match each other.
+             The query bar wrapper has no native border — add one.
+             The date picker button/range already has a border — soften it to the same shade. */
+          .osdQueryBar__wrap,
+          .globalQueryBar .euiFormControlLayout,
+          .globalQueryBar .ouiFormControlLayout {
+            border: 1px solid #d3d3d3 !important;
+            border-radius: 4px !important;
+          }
+          .euiSuperDatePickerShowDatesButton,
+          .ouiSuperDatePickerShowDatesButton,
+          .euiSuperDatePickerToggleQuickSelectButton,
+          .ouiSuperDatePickerToggleQuickSelectButton,
+          .euiDatePickerRange,
+          .ouiDatePickerRange {
+            border-color: #d3d3d3 !important;
           }
           .navbar.navbar-fixed-top {
             z-index: 19999 !important;
@@ -684,6 +811,12 @@ export function Header({
           .osdQueryBar__textarea {
             padding-top: 9px !important;
             padding-bottom: 9px !important;
+          }
+
+          /* Hide the legacy collapsible nav flyout — replaced by NmLeftNav permanent sidebar */
+          .ouiCollapsibleNav,
+          .euiCollapsibleNav {
+            display: none !important;
           }
         `,
         }}

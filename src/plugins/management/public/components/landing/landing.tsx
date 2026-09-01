@@ -45,7 +45,10 @@ export const ManagementLandingPage = ({ setBreadcrumbs }: ManagementLandingPageP
   });
 
   return (
-    <EuiPageContent horizontalPosition="center" data-test-subj="managementHome">
+    <EuiPageContent
+      data-test-subj="managementHome"
+      style={{ maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}
+    >
       <div>
         <div className="eui-textCenter">
           <EuiIcon type="managementApp" size="xxl" />
@@ -54,14 +57,14 @@ export const ManagementLandingPage = ({ setBreadcrumbs }: ManagementLandingPageP
             <h1>
               <FormattedMessage
                 id="management.landing.header"
-                defaultMessage="Welcome to Dashboards Management"
+                defaultMessage="NetMon-UI management"
               />
             </h1>
           </EuiText>
           <EuiText size="s">
             <FormattedMessage
               id="management.landing.subhead"
-              defaultMessage="Manage your index patterns, saved objects, OpenSearch Dashboards settings, and more."
+              defaultMessage="Manage your indices, index patterns, saved objects, NetMon-UI settings, and more."
             />
           </EuiText>
         </div>
@@ -72,7 +75,7 @@ export const ManagementLandingPage = ({ setBreadcrumbs }: ManagementLandingPageP
           <p>
             <FormattedMessage
               id="management.landing.text"
-              defaultMessage="A complete list of apps is in the menu on the left."
+              defaultMessage="A full list of tools can be found in the left menu"
             />
           </p>
         </EuiText>

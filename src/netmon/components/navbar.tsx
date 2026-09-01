@@ -62,10 +62,41 @@ const useStyles = makeStyles(
   { name: 'Navbar' }
 );
 
+const AUTH_CACHE_KEY = 'nm_navbar_auth_cache';
+
+const readCachedAuth = (): AuthContextValue => {
+  try {
+    const raw = sessionStorage.getItem(AUTH_CACHE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    // ignore parse/storage errors
+  }
+  return undefined;
+};
+
 const LogRhythmNavbar = () => {
   const classes = useStyles();
 
-  const [authState, setAuthState] = useState<AuthContextValue>(undefined);
+  // Seed from cache so the navbar renders immediately on navigation; the real
+  // auth check will overwrite it once it resolves.
+  const [authState, setAuthState] = useState<AuthContextValue>(readCachedAuth);
+
+  const setAuthStateAndCache = useCallback((value: AuthContextValue) => {
+    // The Auth service fires immediately with undefined before getCurrentUser resolves.
+    // Ignore undefined updates when we already have a valid cached value so we never
+    // blank out a navbar that is already showing.
+    setAuthState((prev) => {
+      if (value === undefined && prev !== undefined) return prev;
+      if (value !== undefined) {
+        try {
+          sessionStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(value));
+        } catch (e) {
+          // ignore storage errors
+        }
+      }
+      return value;
+    });
+  }, []);
 
   const checkingToken = useSessionSync('token');
   const checkingNotifications = useSessionSync('notificationsAlreadySeen');
@@ -115,12 +146,12 @@ const LogRhythmNavbar = () => {
       return;
     }
 
-    const unsub = Auth.subscribe(setAuthState);
+    const unsub = Auth.subscribe(setAuthStateAndCache);
 
     Auth.getCurrentUser();
 
     return unsub;
-  }, [checkingToken, checkingNotifications]);
+  }, [checkingToken, checkingNotifications, setAuthStateAndCache]);
 
   if (authState === undefined) {
     return null;
@@ -146,4 +177,4 @@ const LogRhythmNavbar = () => {
   );
 };
 
-export default LogRhythmNavbar;
+export { LogRhythmNavbar };
