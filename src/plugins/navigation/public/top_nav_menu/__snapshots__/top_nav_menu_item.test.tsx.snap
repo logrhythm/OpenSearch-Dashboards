@@ -6,7 +6,7 @@ exports[`TopNavMenu Should render emphasized item which should be clickable 1`] 
   iconType="beaker"
   isDisabled={false}
   onClick={[Function]}
-  size="s"
+  size="m"
 >
   Test
 </EuiButton>

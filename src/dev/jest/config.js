@@ -137,6 +137,9 @@ export default {
   moduleNameMapper: {
     '@elastic/eui$': '<rootDir>/node_modules/@elastic/eui/test-env',
     '@elastic/eui/lib/(.*)?': '<rootDir>/node_modules/@elastic/eui/test-env/$1',
+    // LogRhythm packages use ESM and cannot be transformed by Jest — stub them out
+    '^@logrhythm/(.*)$': '<rootDir>/src/dev/jest/mocks/logrhythm_mock.js',
+    '^lr-style/(.*)$': '<rootDir>/src/dev/jest/mocks/style_mock.js',
     '@opensearch-project/opensearch-next/aws':
       '<rootDir>/node_modules/@opensearch-project/opensearch-next/lib/aws',
     '^src/plugins/(.*)': '<rootDir>/src/plugins/$1',
