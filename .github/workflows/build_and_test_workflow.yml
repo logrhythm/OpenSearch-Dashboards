@@ -96,17 +96,16 @@ jobs:
           restore-keys: |
             yarn-
 
+      - name: Configure JFrog registry auth
+        run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
+
       - name: Run bootstrap (Linux)
         if: matrix.os != 'windows-latest'
         run: yarn osd bootstrap
-        env:
-          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Run bootstrap (Windows)
         if: matrix.os == 'windows-latest'
         run: yarn osd bootstrap || yarn osd bootstrap
-        env:
-          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Run unit tests group ${{ matrix.group }} with coverage
         id: unit-tests
@@ -162,10 +161,11 @@ jobs:
           restore-keys: |
             yarn-
 
+      - name: Configure JFrog registry auth
+        run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
+
       - name: Run bootstrap
         run: yarn osd bootstrap
-        env:
-          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Run linter
         id: linter
@@ -268,17 +268,16 @@ jobs:
       - name: Setup chromedriver
         run: node scripts/upgrade_chromedriver.js
 
+      - name: Configure JFrog registry auth
+        run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
+
       - name: Run bootstrap (Linux)
         if: matrix.os != 'windows-latest'
         run: yarn osd bootstrap
-        env:
-          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Run bootstrap (Windows)
         if: matrix.os == 'windows-latest'
         run: yarn osd bootstrap || yarn osd bootstrap
-        env:
-          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Build plugins
         run: node scripts/build_opensearch_dashboards_platform_plugins --no-examples --workers 10
@@ -388,17 +387,16 @@ jobs:
       - name: Setup chromedriver
         run: node scripts/upgrade_chromedriver.js
 
+      - name: Configure JFrog registry auth
+        run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
+
       - name: Run bootstrap (Linux)
         if: matrix.os != 'windows-latest'
         run: yarn osd bootstrap
-        env:
-          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Run bootstrap (Windows)
         if: matrix.os == 'windows-latest'
         run: yarn osd bootstrap || yarn osd bootstrap
-        env:
-          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Build plugins
         run: node scripts/build_opensearch_dashboards_platform_plugins --no-examples --workers 10 --scan-dir "./test/plugin_functional/plugins"
@@ -514,10 +512,11 @@ jobs:
         run: |
           echo "ARTIFACT_BUILD_NAME=opensearch-dashboards-${{ env.VERSION }}-${{ matrix.suffix }}.${{ matrix.ext }}" >> $env:GITHUB_ENV
 
+      - name: Configure JFrog registry auth
+        run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
+
       - name: Run bootstrap
         run: yarn osd bootstrap
-        env:
-          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Build `${{ matrix.name }}`
         run: yarn ${{ matrix.script }} --release
