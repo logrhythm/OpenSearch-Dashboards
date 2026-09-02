@@ -73,5 +73,3 @@ snapshots.js
 
 # Ignore the generated antlr files
 /src/plugins/data/public/antlr/**/grammar/.antlr/
-# Ignore .npmrc
-.npmrc
