@@ -99,10 +99,14 @@ jobs:
       - name: Run bootstrap (Linux)
         if: matrix.os != 'windows-latest'
         run: yarn osd bootstrap
+        env:
+          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Run bootstrap (Windows)
         if: matrix.os == 'windows-latest'
         run: yarn osd bootstrap || yarn osd bootstrap
+        env:
+          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Run unit tests group ${{ matrix.group }} with coverage
         id: unit-tests
@@ -160,6 +164,8 @@ jobs:
 
       - name: Run bootstrap
         run: yarn osd bootstrap
+        env:
+          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Run linter
         id: linter
@@ -265,10 +271,14 @@ jobs:
       - name: Run bootstrap (Linux)
         if: matrix.os != 'windows-latest'
         run: yarn osd bootstrap
+        env:
+          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Run bootstrap (Windows)
         if: matrix.os == 'windows-latest'
         run: yarn osd bootstrap || yarn osd bootstrap
+        env:
+          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Build plugins
         run: node scripts/build_opensearch_dashboards_platform_plugins --no-examples --workers 10
@@ -381,10 +391,14 @@ jobs:
       - name: Run bootstrap (Linux)
         if: matrix.os != 'windows-latest'
         run: yarn osd bootstrap
+        env:
+          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Run bootstrap (Windows)
         if: matrix.os == 'windows-latest'
         run: yarn osd bootstrap || yarn osd bootstrap
+        env:
+          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Build plugins
         run: node scripts/build_opensearch_dashboards_platform_plugins --no-examples --workers 10 --scan-dir "./test/plugin_functional/plugins"
@@ -502,6 +516,8 @@ jobs:
 
       - name: Run bootstrap
         run: yarn osd bootstrap
+        env:
+          JFROG_NPM_AUTH: ${{ secrets.JFROG_NPM_AUTH }}
 
       - name: Build `${{ matrix.name }}`
         run: yarn ${{ matrix.script }} --release
