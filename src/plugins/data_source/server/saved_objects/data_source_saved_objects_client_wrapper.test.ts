@@ -16,6 +16,19 @@ import { DataSourceSavedObjectsClientWrapper } from './data_source_saved_objects
 import { SavedObject } from 'opensearch-dashboards/public';
 import { DATA_SOURCE_TITLE_LENGTH_LIMIT } from '../util/constants';
 
+// Mock endpoint_validator to avoid DNS lookups in tests.
+// isValidURL is tested separately in endpoint_validator.test.js.
+jest.mock('../util/endpoint_validator', () => ({
+  isValidURL: jest.fn((endpoint: string) => {
+    try {
+      const url = new URL(endpoint);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  }),
+}));
+
 describe('DataSourceSavedObjectsClientWrapper', () => {
   const customAuthName = 'role_based_auth';
   const customAuthMethod = {
