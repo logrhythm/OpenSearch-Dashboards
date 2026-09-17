@@ -1,0 +1,25 @@
+diff --git a/node_modules/@logrhythm/nm-web-shared/components/link/netmon_link.js b/node_modules/@logrhythm/nm-web-shared/components/link/netmon_link.js
+--- a/node_modules/@logrhythm/nm-web-shared/components/link/netmon_link.js
++++ b/node_modules/@logrhythm/nm-web-shared/components/link/netmon_link.js
+@@ -7,5 +7,4 @@
+ exports["default"] = void 0;
+ var _react = _interopRequireDefault(require("react"));
+-var _reactRouterDom = require("react-router-dom");
+ var NetmonLink = function NetmonLink(props) {
+   var id = props.id,
+@@ -16,15 +15,4 @@
+     target = props.target,
+     to = props.to;
+-  var isAnalyze = window.location.pathname.indexOf('/analyze') !== -1;
+-  if (!isAnalyze) {
+-    return _react["default"].createElement(_reactRouterDom.Link, {
+-      id: id,
+-      "data-testid": dataTestId,
+-      className: className,
+-      style: style,
+-      to: to,
+-      target: target
+-    }, children);
+-  }
+   return _react["default"].createElement("a", {
+     id: id,
