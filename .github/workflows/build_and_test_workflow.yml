@@ -272,7 +272,7 @@ jobs:
           Copy-Item -Force -Recurse "${{steps.download-chrome.outputs.path}}/*" "$Env:Programfiles/Google/Chrome/Application"
 
       - name: Setup chromedriver
-        run: node scripts/upgrade_chromedriver.js
+        run: node scripts/upgrade_chromedriver.js --install
 
       - name: Configure JFrog registry auth
         run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
@@ -394,7 +394,7 @@ jobs:
           Copy-Item -Force -Recurse "${{steps.download-chrome.outputs.path}}/*" "$Env:Programfiles/Google/Chrome/Application"
 
       - name: Setup chromedriver
-        run: node scripts/upgrade_chromedriver.js
+        run: node scripts/upgrade_chromedriver.js --install
 
       - name: Configure JFrog registry auth
         run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc

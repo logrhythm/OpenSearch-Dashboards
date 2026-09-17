@@ -52,6 +52,7 @@ export default function () {
       buildArgs: [],
       sourceArgs: ['--no-base-path', '--env.name=development'],
       serverArgs: [
+        '--config=config/opensearch_dashboards_test.yml',
         '--logging.json=false',
         '--logging.quiet=false',
         `--server.port=${osdTestConfig.getPort()}`,
