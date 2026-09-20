@@ -271,14 +271,14 @@ jobs:
           Remove-Item -Recurse -Force "$Env:Programfiles/Google/Chrome/Application/*"
           Copy-Item -Force -Recurse "${{steps.download-chrome.outputs.path}}/*" "$Env:Programfiles/Google/Chrome/Application"
 
-      - name: Setup chromedriver
-        run: node scripts/upgrade_chromedriver.js --install
-
       - name: Configure JFrog registry auth
         run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
 
       - name: Install dependencies
         run: yarn install --ignore-engines
+
+      - name: Setup chromedriver
+        run: node scripts/upgrade_chromedriver.js --install
 
       - name: Run bootstrap (Linux)
         if: matrix.os != 'windows-latest'
@@ -393,14 +393,14 @@ jobs:
           Remove-Item -Recurse -Force "$Env:Programfiles/Google/Chrome/Application/*"
           Copy-Item -Force -Recurse "${{steps.download-chrome.outputs.path}}/*" "$Env:Programfiles/Google/Chrome/Application"
 
-      - name: Setup chromedriver
-        run: node scripts/upgrade_chromedriver.js --install
-
       - name: Configure JFrog registry auth
         run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
 
       - name: Install dependencies
         run: yarn install --ignore-engines
+
+      - name: Setup chromedriver
+        run: node scripts/upgrade_chromedriver.js --install
 
       - name: Run bootstrap (Linux)
         if: matrix.os != 'windows-latest'
