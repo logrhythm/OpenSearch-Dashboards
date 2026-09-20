@@ -43,6 +43,7 @@ export default function ({ getService, getPageObjects }) {
 
   describe('context view for date_nanos', () => {
     before(async function () {
+      await PageObjects.timePicker.setDefaultAbsoluteRangeViaUiSettings();
       await PageObjects.common.navigateToApp('discover');
       await PageObjects.discover.switchDiscoverTable('new');
       await security.testUser.setRoles([

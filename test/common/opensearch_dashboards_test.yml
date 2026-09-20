@@ -3,7 +3,7 @@
 # can reach API endpoints directly at /api/* without any path prefix.
 server.host: "127.0.0.1"
 opensearch.preserveHost: true
-opensearchDashboards.index: ".opensearch_dashboards"
+opensearchDashboards.index: ".kibana"
 opensearchDashboards.defaultAppId: "dashboard"
 opensearch.requestTimeout: 300000
 opensearch.shardTimeout: 0
