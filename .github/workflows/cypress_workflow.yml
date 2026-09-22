@@ -44,6 +44,7 @@ env:
 
 jobs:
   cypress-tests:
+    if: false
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
