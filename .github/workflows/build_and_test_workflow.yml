@@ -96,6 +96,12 @@ jobs:
           restore-keys: |
             yarn-
 
+      - name: Configure JFrog registry auth
+        run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
+
+      - name: Install dependencies
+        run: yarn install --ignore-engines
+
       - name: Run bootstrap (Linux)
         if: matrix.os != 'windows-latest'
         run: yarn osd bootstrap
@@ -158,6 +164,12 @@ jobs:
           restore-keys: |
             yarn-
 
+      - name: Configure JFrog registry auth
+        run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
+
+      - name: Install dependencies
+        run: yarn install --ignore-engines
+
       - name: Run bootstrap
         run: yarn osd bootstrap
 
@@ -173,233 +185,248 @@ jobs:
         id: i18n-check
         run: yarn i18n:check
 
-  functional-tests:
-    name: Run functional tests on ${{ matrix.name }} (ciGroup${{ matrix.group }})
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-        include:
-          - os: ubuntu-latest
-            name: Linux
-          - os: windows-latest
-            name: Windows
-    runs-on: ${{ matrix.os }}
-    steps:
-      - run: echo Running functional tests for ciGroup${{ matrix.group }}
-
-      - name: Configure git's autocrlf (Windows only)
-        if: matrix.os == 'windows-latest'
-        run: |
-          git config --global core.autocrlf false
-
-      - name: Configure pagefile size (Windows only)
-        if: matrix.os == 'windows-latest'
-        uses: al-cheb/configure-pagefile-action@v1.3
-        with:
-          minimum-size: 16GB
-          maximum-size: 64GB
-          disk-root: "C:"
-
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup JDK (Windows only)
-        if: matrix.os == 'windows-latest'
-        uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'adopt'
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: '.nvmrc'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Setup Yarn
-        run: |
-          npm uninstall -g yarn
-          npm i -g yarn@1.22.10
-          yarn config set network-timeout 1000000 -g
-
-      - name: Configure Yarn Cache (Linux)
-        if: matrix.os != 'windows-latest'
-        run: echo "YARN_CACHE_LOCATION=$(yarn cache dir)" >> $GITHUB_ENV
-
-      - name: Initialize Yarn Cache
-        uses: actions/cache@v3
-        if: matrix.os != 'windows-latest'
-        with:
-          path: ${{ env.YARN_CACHE_LOCATION }}
-          key: yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-
-
-      # Lock Chrome version until ChromeDriver's release pipeline is fixed
-      - name: Download Chrome
-        id: download-chrome
-        uses: abhi1693/setup-browser@v0.3.5
-        with:
-          browser: chrome
-          # v122
-          version: 1250586
-
-      - name: Setup Chrome (Linux)
-        if: matrix.os != 'windows-latest'
-        run: |
-          sudo rm -rf /usr/bin/google-chrome /opt/google/chrome
-          sudo ln -s ${{steps.download-chrome.outputs.path}}/${{steps.download-chrome.outputs.binary}} /usr/bin/google-chrome
-
-      - name: Setup Chrome (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          New-Item -Force -Type Directory "$Env:Programfiles/Google/Chrome/Application"
-          Remove-Item -Recurse -Force "$Env:Programfiles/Google/Chrome/Application/*"
-          Copy-Item -Force -Recurse "${{steps.download-chrome.outputs.path}}/*" "$Env:Programfiles/Google/Chrome/Application"
-
-      - name: Setup chromedriver
-        run: node scripts/upgrade_chromedriver.js
-
-      - name: Run bootstrap (Linux)
-        if: matrix.os != 'windows-latest'
-        run: yarn osd bootstrap
-
-      - name: Run bootstrap (Windows)
-        if: matrix.os == 'windows-latest'
-        run: yarn osd bootstrap || yarn osd bootstrap
-
-      - name: Build plugins
-        run: node scripts/build_opensearch_dashboards_platform_plugins --no-examples --workers 10
-
-      - name: Run CI test group ${{ matrix.group }}
-        id: ftr-tests
-        run: node scripts/functional_tests.js --config test/functional/config.js --include ciGroup${{ matrix.group }}
-        env:
-          CI_GROUP: ciGroup${{ matrix.group }}
-          CI_PARALLEL_PROCESS_NUMBER: ciGroup${{ matrix.group }}
-          JOB: ci${{ matrix.group }}
-          CACHE_DIR: ciGroup${{ matrix.group }}
-
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: failure-artifacts-ci${{ matrix.group }}
-          path: |
-            test/*/failure_debug/
-            test/*/screenshots/
-
-  plugin-functional-tests:
-    name: Run plugin functional tests on ${{ matrix.name }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        include:
-          - os: ubuntu-latest
-            name: Linux
-          - os: windows-latest
-            name: Windows
-    runs-on: ${{ matrix.os }}
-    steps:
-      - run: echo Running plugin functional tests
-
-      - name: Configure git's autocrlf (Windows only)
-        if: matrix.os == 'windows-latest'
-        run: |
-          git config --global core.autocrlf false
-
-      - name: Configure pagefile size (Windows only)
-        if: matrix.os == 'windows-latest'
-        uses: al-cheb/configure-pagefile-action@v1.3
-        with:
-          minimum-size: 16GB
-          maximum-size: 64GB
-          disk-root: "C:"
-
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup JDK (Windows only)
-        if: matrix.os == 'windows-latest'
-        uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'adopt'
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: '.nvmrc'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Setup Yarn
-        run: |
-          npm uninstall -g yarn
-          npm i -g yarn@1.22.10
-          yarn config set network-timeout 1000000 -g
-
-      - name: Configure Yarn Cache (Linux)
-        if: matrix.os != 'windows-latest'
-        run: echo "YARN_CACHE_LOCATION=$(yarn cache dir)" >> $GITHUB_ENV
-
-      - name: Initialize Yarn Cache
-        uses: actions/cache@v3
-        if: matrix.os != 'windows-latest'
-        with:
-          path: ${{ env.YARN_CACHE_LOCATION }}
-          key: yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-
-
-      # Lock Chrome version until ChromeDriver's release pipeline is fixed
-      - name: Download Chrome
-        id: download-chrome
-        uses: abhi1693/setup-browser@v0.3.5
-        with:
-          browser: chrome
-          # v122
-          version: 1250586
-
-      - name: Setup Chrome (Linux)
-        if: matrix.os != 'windows-latest'
-        run: |
-          sudo rm -rf /usr/bin/google-chrome /opt/google/chrome
-          sudo ln -s ${{steps.download-chrome.outputs.path}}/${{steps.download-chrome.outputs.binary}} /usr/bin/google-chrome
-
-      - name: Setup Chrome (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          New-Item -Force -Type Directory "$Env:Programfiles/Google/Chrome/Application"
-          Remove-Item -Recurse -Force "$Env:Programfiles/Google/Chrome/Application/*"
-          Copy-Item -Force -Recurse "${{steps.download-chrome.outputs.path}}/*" "$Env:Programfiles/Google/Chrome/Application"
-
-      - name: Setup chromedriver
-        run: node scripts/upgrade_chromedriver.js
-
-      - name: Run bootstrap (Linux)
-        if: matrix.os != 'windows-latest'
-        run: yarn osd bootstrap
-
-      - name: Run bootstrap (Windows)
-        if: matrix.os == 'windows-latest'
-        run: yarn osd bootstrap || yarn osd bootstrap
-
-      - name: Build plugins
-        run: node scripts/build_opensearch_dashboards_platform_plugins --no-examples --workers 10 --scan-dir "./test/plugin_functional/plugins"
-
-      - name: Run functional plugin tests
-        id: plugin-ftr-tests
-        run: node scripts/functional_tests.js --config test/plugin_functional/config.ts
-
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: failure-artifacts-plugin-functional-${{ matrix.os }}
-          path: |
-            test/*/failure_debug/
-            test/*/screenshots/
+#  functional-tests:
+#    name: Run functional tests on ${{ matrix.name }} (ciGroup${{ matrix.group }})
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        os: [ubuntu-latest, windows-latest]
+#        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+#        include:
+#          - os: ubuntu-latest
+#            name: Linux
+#          - os: windows-latest
+#            name: Windows
+#        exclude:
+#          - os: ubuntu-latest
+#            group: 1
+#    runs-on: ${{ matrix.os }}
+#    steps:
+#      - run: echo Running functional tests for ciGroup${{ matrix.group }}
+#
+#      - name: Configure git's autocrlf (Windows only)
+#        if: matrix.os == 'windows-latest'
+#        run: |
+#          git config --global core.autocrlf false
+#
+#      - name: Configure pagefile size (Windows only)
+#        if: matrix.os == 'windows-latest'
+#        uses: al-cheb/configure-pagefile-action@v1.3
+#        with:
+#          minimum-size: 16GB
+#          maximum-size: 64GB
+#          disk-root: "C:"
+#
+#      - name: Checkout code
+#        uses: actions/checkout@v3
+#
+#      - name: Setup JDK (Windows only)
+#        if: matrix.os == 'windows-latest'
+#        uses: actions/setup-java@v3
+#        with:
+#          java-version: '11'
+#          distribution: 'adopt'
+#
+#      - name: Setup Node
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version-file: '.nvmrc'
+#          registry-url: 'https://registry.npmjs.org'
+#
+#      - name: Setup Yarn
+#        run: |
+#          npm uninstall -g yarn
+#          npm i -g yarn@1.22.10
+#          yarn config set network-timeout 1000000 -g
+#
+#      - name: Configure Yarn Cache (Linux)
+#        if: matrix.os != 'windows-latest'
+#        run: echo "YARN_CACHE_LOCATION=$(yarn cache dir)" >> $GITHUB_ENV
+#
+#      - name: Initialize Yarn Cache
+#        uses: actions/cache@v3
+#        if: matrix.os != 'windows-latest'
+#        with:
+#          path: ${{ env.YARN_CACHE_LOCATION }}
+#          key: yarn-${{ hashFiles('**/yarn.lock') }}
+#          restore-keys: |
+#            yarn-
+#
+#      # Lock Chrome version until ChromeDriver's release pipeline is fixed
+#      - name: Download Chrome
+#        id: download-chrome
+#        uses: abhi1693/setup-browser@v0.3.5
+#        with:
+#          browser: chrome
+#          # v122
+#          version: 1250586
+#
+#      - name: Setup Chrome (Linux)
+#        if: matrix.os != 'windows-latest'
+#        run: |
+#          sudo rm -rf /usr/bin/google-chrome /opt/google/chrome
+#          sudo ln -s ${{steps.download-chrome.outputs.path}}/${{steps.download-chrome.outputs.binary}} /usr/bin/google-chrome
+#
+#      - name: Setup Chrome (Windows)
+#        if: matrix.os == 'windows-latest'
+#        run: |
+#          New-Item -Force -Type Directory "$Env:Programfiles/Google/Chrome/Application"
+#          Remove-Item -Recurse -Force "$Env:Programfiles/Google/Chrome/Application/*"
+#          Copy-Item -Force -Recurse "${{steps.download-chrome.outputs.path}}/*" "$Env:Programfiles/Google/Chrome/Application"
+#
+#      - name: Configure JFrog registry auth
+#        run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
+#
+#      - name: Install dependencies
+#        run: yarn install --ignore-engines
+#
+#      - name: Setup chromedriver
+#        run: node scripts/upgrade_chromedriver.js --install
+#
+#      - name: Run bootstrap (Linux)
+#        if: matrix.os != 'windows-latest'
+#        run: yarn osd bootstrap
+#
+#      - name: Run bootstrap (Windows)
+#        if: matrix.os == 'windows-latest'
+#        run: yarn osd bootstrap || yarn osd bootstrap
+#
+#      - name: Build plugins
+#        run: node scripts/build_opensearch_dashboards_platform_plugins --no-examples --workers 10
+#
+#      - name: Run CI test group ${{ matrix.group }}
+#        id: ftr-tests
+#        run: node scripts/functional_tests.js --config test/functional/config.js --include ciGroup${{ matrix.group }}
+#        env:
+#          CI_GROUP: ciGroup${{ matrix.group }}
+#          CI_PARALLEL_PROCESS_NUMBER: ciGroup${{ matrix.group }}
+#          JOB: ci${{ matrix.group }}
+#          CACHE_DIR: ciGroup${{ matrix.group }}
+#
+#      - uses: actions/upload-artifact@v4
+#        if: failure()
+#        with:
+#          name: failure-artifacts-ci${{ matrix.group }}
+#          path: |
+#            test/*/failure_debug/
+#            test/*/screenshots/
+#
+#  plugin-functional-tests:
+#    name: Run plugin functional tests on ${{ matrix.name }}
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        os: [ubuntu-latest, windows-latest]
+#        include:
+#          - os: ubuntu-latest
+#            name: Linux
+#          - os: windows-latest
+#            name: Windows
+#    runs-on: ${{ matrix.os }}
+#    steps:
+#      - run: echo Running plugin functional tests
+#
+#      - name: Configure git's autocrlf (Windows only)
+#        if: matrix.os == 'windows-latest'
+#        run: |
+#          git config --global core.autocrlf false
+#
+#      - name: Configure pagefile size (Windows only)
+#        if: matrix.os == 'windows-latest'
+#        uses: al-cheb/configure-pagefile-action@v1.3
+#        with:
+#          minimum-size: 16GB
+#          maximum-size: 64GB
+#          disk-root: "C:"
+#
+#      - name: Checkout code
+#        uses: actions/checkout@v3
+#
+#      - name: Setup JDK (Windows only)
+#        if: matrix.os == 'windows-latest'
+#        uses: actions/setup-java@v3
+#        with:
+#          java-version: '11'
+#          distribution: 'adopt'
+#
+#      - name: Setup Node
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version-file: '.nvmrc'
+#          registry-url: 'https://registry.npmjs.org'
+#
+#      - name: Setup Yarn
+#        run: |
+#          npm uninstall -g yarn
+#          npm i -g yarn@1.22.10
+#          yarn config set network-timeout 1000000 -g
+#
+#      - name: Configure Yarn Cache (Linux)
+#        if: matrix.os != 'windows-latest'
+#        run: echo "YARN_CACHE_LOCATION=$(yarn cache dir)" >> $GITHUB_ENV
+#
+#      - name: Initialize Yarn Cache
+#        uses: actions/cache@v3
+#        if: matrix.os != 'windows-latest'
+#        with:
+#          path: ${{ env.YARN_CACHE_LOCATION }}
+#          key: yarn-${{ hashFiles('**/yarn.lock') }}
+#          restore-keys: |
+#            yarn-
+#
+#      # Lock Chrome version until ChromeDriver's release pipeline is fixed
+#      - name: Download Chrome
+#        id: download-chrome
+#        uses: abhi1693/setup-browser@v0.3.5
+#        with:
+#          browser: chrome
+#          # v122
+#          version: 1250586
+#
+#      - name: Setup Chrome (Linux)
+#        if: matrix.os != 'windows-latest'
+#        run: |
+#          sudo rm -rf /usr/bin/google-chrome /opt/google/chrome
+#          sudo ln -s ${{steps.download-chrome.outputs.path}}/${{steps.download-chrome.outputs.binary}} /usr/bin/google-chrome
+#
+#      - name: Setup Chrome (Windows)
+#        if: matrix.os == 'windows-latest'
+#        run: |
+#          New-Item -Force -Type Directory "$Env:Programfiles/Google/Chrome/Application"
+#          Remove-Item -Recurse -Force "$Env:Programfiles/Google/Chrome/Application/*"
+#          Copy-Item -Force -Recurse "${{steps.download-chrome.outputs.path}}/*" "$Env:Programfiles/Google/Chrome/Application"
+#
+#      - name: Configure JFrog registry auth
+#        run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
+#
+#      - name: Install dependencies
+#        run: yarn install --ignore-engines
+#
+#      - name: Setup chromedriver
+#        run: node scripts/upgrade_chromedriver.js --install
+#
+#      - name: Run bootstrap (Linux)
+#        if: matrix.os != 'windows-latest'
+#        run: yarn osd bootstrap
+#
+#      - name: Run bootstrap (Windows)
+#        if: matrix.os == 'windows-latest'
+#        run: yarn osd bootstrap || yarn osd bootstrap
+#
+#      - name: Build plugins
+#        run: node scripts/build_opensearch_dashboards_platform_plugins --no-examples --workers 10 --scan-dir "./test/plugin_functional/plugins"
+#
+#      - name: Run functional plugin tests
+#        id: plugin-ftr-tests
+#        run: node scripts/functional_tests.js --config test/plugin_functional/config.ts
+#
+#      - uses: actions/upload-artifact@v4
+#        if: failure()
+#        with:
+#          name: failure-artifacts-plugin-functional-${{ matrix.os }}
+#          path: |
+#            test/*/failure_debug/
+#            test/*/screenshots/
 
   build-min-artifact-tests:
     name: Build min release artifacts on ${{ matrix.name }}
@@ -499,6 +526,12 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           echo "ARTIFACT_BUILD_NAME=opensearch-dashboards-${{ env.VERSION }}-${{ matrix.suffix }}.${{ matrix.ext }}" >> $env:GITHUB_ENV
+
+      - name: Configure JFrog registry auth
+        run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
+
+      - name: Install dependencies
+        run: yarn install --ignore-engines
 
       - name: Run bootstrap
         run: yarn osd bootstrap

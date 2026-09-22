@@ -99,7 +99,11 @@ def put_saved_object_via_api(object_type, object_id, content):
         return False, str(err)
 def parse_resource_filename(filename):
     name_without_ext = splitext(filename)[0]
-    if ':' in name_without_ext:
+    if '__' in name_without_ext:
+        object_type, object_id = name_without_ext.split('__', 1)
+        return object_type, object_id
+    elif ':' in name_without_ext:
+        # Legacy colon separator (not valid on Windows, kept for compatibility)
         object_type, object_id = name_without_ext.split(':', 1)
         return object_type, object_id
     else:

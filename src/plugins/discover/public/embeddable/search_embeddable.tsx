@@ -366,8 +366,7 @@ export class SearchEmbeddable
       ];
       const attrError = error?.body?.attributes?.error;
       const esType =
-        (typeof attrError === 'object' ? attrError?.type : undefined) ||
-        attrError?.caused_by?.type;
+        (typeof attrError === 'object' ? attrError?.type : undefined) || attrError?.caused_by?.type;
       const msg = error?.message ?? '';
       const isQueryError =
         error?.name === 'QuerySyntaxError' ||

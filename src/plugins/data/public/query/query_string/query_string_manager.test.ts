@@ -41,6 +41,8 @@ describe('QueryStringManager', () => {
   let mockSearchInterceptor: jest.Mocked<ISearchInterceptor>;
 
   beforeEach(() => {
+    window.localStorage.clear();
+    window.sessionStorage.clear();
     storage = new DataStorage(window.localStorage, 'opensearchDashboards.');
     sessionStorage = new DataStorage(window.sessionStorage, 'opensearchDashboards.');
     mockSearchInterceptor = {} as jest.Mocked<ISearchInterceptor>;
@@ -106,8 +108,10 @@ describe('QueryStringManager', () => {
   });
 
   test('clearQueryHistory clears the query history', () => {
+    const dateSpy = jest.spyOn(Date, 'now').mockReturnValueOnce(1000).mockReturnValueOnce(2000);
     service.addToQueryHistory({ query: 'test query 1', language: 'sql' });
     service.addToQueryHistory({ query: 'test query 2', language: 'sql' });
+    dateSpy.mockRestore();
     expect(service.getQueryHistory()).toHaveLength(2);
 
     service.clearQueryHistory();

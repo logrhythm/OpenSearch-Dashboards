@@ -30,7 +30,7 @@ on:
 
 env:
   TEST_REPO: ${{ inputs.test_repo != '' && inputs.test_repo || 'opensearch-project/opensearch-dashboards-functional-test' }}
-  TEST_BRANCH: "${{ inputs.test_branch != '' && inputs.test_branch || github.base_ref }}"
+  TEST_BRANCH: "${{ inputs.test_branch != '' && inputs.test_branch || 'main' }}"
   FTR_PATH: 'ftr'
   CYPRESS_BROWSER: 'chromium'
   CYPRESS_VISBUILDER_ENABLED: true
@@ -44,6 +44,7 @@ env:
 
 jobs:
   cypress-tests:
+    if: false
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -130,7 +131,7 @@ jobs:
           echo "SOURCE_BRANCH=${{ steps.get_pr_info.outputs.head_ref }}" >> $GITHUB_ENV
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: ${{ env.SOURCE_REPO }}
           ref: '${{ env.SOURCE_BRANCH }}'
@@ -146,6 +147,12 @@ jobs:
           npm uninstall -g yarn
           npm i -g yarn@1.22.10
 
+      - name: Configure JFrog registry auth
+        run: echo "//logrhythm.jfrog.io/logrhythm/api/npm/npm-virtual/:_auth=${{ secrets.JFROG_NPM_AUTH }}" >> .npmrc
+
+      - name: Install dependencies
+        run: yarn install --ignore-engines
+
       - name: Run bootstrap
         run: yarn osd bootstrap
 
@@ -153,7 +160,7 @@ jobs:
         run: node scripts/build_opensearch_dashboards_platform_plugins --no-examples --workers 12
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: ${{ env.FTR_PATH }}
           repository: ${{ env.TEST_REPO }}

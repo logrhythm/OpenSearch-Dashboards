@@ -97,14 +97,13 @@ const TableRowUI = ({
         if (shouldBindFormat(colName)) {
           const src = (row._source || {}) as any;
           if (colName === 'Attach') {
-            const cellContent =
-              src.Attach ? (
-                <AttachDownload
-                  session={src.Session || ''}
-                  fileName={src.Filename || ''}
-                  captured={!!src.Captured}
-                />
-              ) : null;
+            const cellContent = src.Attach ? (
+              <AttachDownload
+                session={src.Session || ''}
+                fileName={src.Filename || ''}
+                captured={!!src.Captured}
+              />
+            ) : null;
             return (
               <td
                 key={colName}
@@ -116,8 +115,9 @@ const TableRowUI = ({
             );
           }
           if (colName === 'Captured') {
-            const cellContent =
-              src.Captured ? <CaptureDownload session={src.Session || ''} /> : null;
+            const cellContent = src.Captured ? (
+              <CaptureDownload session={src.Session || ''} />
+            ) : null;
             return (
               <td
                 key={colName}
