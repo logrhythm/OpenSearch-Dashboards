@@ -111,8 +111,9 @@ describe('ImportFlyout Component', () => {
     component.update();
 
     await act(async () => {
-      await nextTick();
       component.find(confirmBtnIdentifier).first().simulate('click');
+      await nextTick(); // wait for findAll() to resolve
+      await nextTick(); // wait for update() to resolve
     });
 
     component.update();
