@@ -86,9 +86,8 @@ export default function loggingConfiguration(config) {
   });
 
   const options = {
-    ops: {
-      interval: config.get('ops.interval'),
-    },
+    ops:
+      parseInt(process.version.slice(1)) >= 20 ? false : { interval: config.get('ops.interval') },
     includes: {
       request: ['headers', 'payload'],
     },

@@ -41,11 +41,12 @@ export default function ({ getService, getPageObjects }) {
   const browser = getService('browser');
   const testSubjects = getService('testSubjects');
 
-  const PageObjects = getPageObjects(['common', 'context', 'discover']);
+  const PageObjects = getPageObjects(['common', 'context', 'discover', 'timePicker']);
 
   describe('context filters', function contextSize() {
     beforeEach(async function () {
       await browser.refresh();
+      await PageObjects.timePicker.setDefaultAbsoluteRangeViaUiSettings();
       await PageObjects.common.navigateToApp('discover');
       await PageObjects.discover.switchDiscoverTable('new');
       await PageObjects.context.navigateTo(TEST_INDEX_PATTERN, TEST_ANCHOR_ID, {

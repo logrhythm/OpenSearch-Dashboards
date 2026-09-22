@@ -74,11 +74,16 @@ if (majorVersion) {
   if (process.argv.includes('--install')) {
     console.log(`Installing chromedriver@^${majorVersion}`);
 
-    spawnSync(`yarn add --dev chromedriver@^${majorVersion}`, {
-      stdio: 'inherit',
-      cwd: process.cwd(),
-      shell: true,
-    });
+    // Use the public npm registry so chromedriver is available regardless of
+    // any private registry (e.g. JFrog) that may not mirror the package.
+    spawnSync(
+      `yarn add --dev chromedriver@^${majorVersion} --registry https://registry.npmjs.org --ignore-engines`,
+      {
+        stdio: 'inherit',
+        cwd: process.cwd(),
+        shell: true,
+      }
+    );
   } else {
     console.log(`Upgrading to chromedriver@^${majorVersion}`);
 
