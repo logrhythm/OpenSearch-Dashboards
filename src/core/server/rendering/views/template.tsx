@@ -54,7 +54,7 @@ export const Template: FunctionComponent<Props> = ({
   const logos = getLogos(injectedMetadata.branding, injectedMetadata.serverBasePath);
 
   const favicon = injectedMetadata.branding.faviconUrl;
-  const applicationTitle = injectedMetadata.branding.applicationTitle || 'OpenSearch Dashboards';
+  const applicationTitle = injectedMetadata.branding.applicationTitle || 'NetMon';
 
   return (
     <html lang={locale}>

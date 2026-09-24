@@ -247,19 +247,19 @@ logging.quiet: true
 #  'ff00::/8',
 # ]
 
-# opensearchDashboards.branding:
-#   logo:
-#     defaultUrl: ""
-#     darkModeUrl: ""
-#   mark:
-#     defaultUrl: ""
-#     darkModeUrl: ""
-#   loadingLogo:
-#     defaultUrl: ""
-#     darkModeUrl: ""
-#   faviconUrl: ""
-#   applicationTitle: ""
-#   useExpandedHeader: false
+opensearchDashboards.branding:
+  logo:
+    defaultUrl: ""
+    darkModeUrl: ""
+  mark:
+    defaultUrl: ""
+    darkModeUrl: ""
+  loadingLogo:
+    defaultUrl: ""
+    darkModeUrl: ""
+  faviconUrl: ""
+  applicationTitle: "NetMon"
+  useExpandedHeader: false
 
 # Set the value of this setting to true to capture region denied warnings and errors
 # for your map rendering services.
