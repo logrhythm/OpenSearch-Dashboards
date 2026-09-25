@@ -255,8 +255,8 @@ opensearchDashboards.branding:
      defaultUrl: ""
      darkModeUrl: ""
    loadingLogo:
-     defaultUrl: ""
-     darkModeUrl: ""
+     defaultUrl: "/ui/logos/lrwave_animated.gif"
+     darkModeUrl: "/ui/logos/lrwave_animated.gif"
    faviconUrl: ""
    applicationTitle: "NetMon"
    useExpandedHeader: false
