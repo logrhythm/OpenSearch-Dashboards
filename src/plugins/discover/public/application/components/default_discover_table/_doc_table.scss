@@ -76,6 +76,18 @@ doc-table {
 .osdDocTable {
   @include ouiCodeFont;
 
+  // Only row lines — no column (vertical) borders
+  td,
+  th {
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  td {
+    border-top: 1px solid $euiColorLightShade !important;
+    border-bottom: none !important;
+  }
+
   // To fight intruding styles that conflict with OUI's
   & > tbody > tr > td {
     line-height: inherit;

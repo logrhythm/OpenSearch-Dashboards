@@ -30,7 +30,6 @@ export function DocViewerLinks(renderProps: DocViewLinkRenderProps) {
         <EuiFlexItem key={index} grow={false}>
           <EuiLink
             href={item.href}
-            target="_blank"
             style={{ fontWeight: 'normal' }}
             data-test-subj={`${item['data-test-subj']}-${index}`}
           >

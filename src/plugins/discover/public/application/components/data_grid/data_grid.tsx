@@ -145,6 +145,7 @@ const DataGridUI = ({
       sorting={sorting}
       toolbarVisibility={isToolbarVisible ? toolbarOptions : false}
       rowHeightsOptions={rowHeightsOptions}
+      gridStyle={{ border: 'horizontal', header: 'underline' }}
       className="discoverDataGrid"
     />
   );

@@ -1,3 +1,21 @@
 .truncate-by-height {
   overflow: hidden;
 }
+
+// Only row lines — no column (vertical) borders
+.osdDocViewerTable {
+  td,
+  th {
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  td {
+    border-top: 1px solid $euiColorLightShade !important;
+    border-bottom: none !important;
+  }
+
+  tr:first-child td {
+    border-top-color: transparent;
+  }
+}
