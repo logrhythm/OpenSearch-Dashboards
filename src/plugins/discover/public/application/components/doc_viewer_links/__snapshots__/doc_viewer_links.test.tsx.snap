@@ -24,7 +24,6 @@ exports[`Render <DocViewerLink/> with 2 different links 1`] = `
           "fontWeight": "normal",
         }
       }
-      target="_blank"
     >
       generateCb link
     </EuiLink>
@@ -41,7 +40,6 @@ exports[`Render <DocViewerLink/> with 2 different links 1`] = `
           "fontWeight": "normal",
         }
       }
-      target="_blank"
     >
       href link
     </EuiLink>
