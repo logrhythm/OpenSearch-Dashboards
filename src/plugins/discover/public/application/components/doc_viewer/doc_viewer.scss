@@ -31,6 +31,14 @@
     font-family: $euiCodeFontFamily;
   }
 
+  // Only row lines — no column (vertical) borders
+  td {
+    border-left: none !important;
+    border-right: none !important;
+    border-top: 1px solid $euiColorLightShade !important;
+    border-bottom: none !important;
+  }
+
   tr:first-child td {
     border-top-color: transparent;
   }

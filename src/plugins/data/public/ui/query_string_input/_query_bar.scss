@@ -42,9 +42,10 @@
   height: $euiFormControlLayoutGroupInputHeight;
 
   // Unlike most inputs within layout control groups, the text area still needs a border.
-  // These adjusts help it sit above the control groups shadow to line up correctly.
+  // Only shift left so the left border aligns; removing the Y shift keeps bottom border
+  // as visible as the top border.
   padding: $euiSizeS $euiSizeS;
-  transform: translateY(-1px) translateX(-1px);
+  transform: translateX(-1px);
 
   &:not(:focus):not(:invalid) {
     @include euiYScrollWithShadows;

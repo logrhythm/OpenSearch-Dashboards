@@ -742,22 +742,34 @@ export function Header({
           .euiCollapsibleNavGroup, .ouiCollapsibleNavGroup {
             background-color: #fff !important;
           }
-          /* Subtle uniform border on all search-bar controls so they match each other.
-             The query bar wrapper has no native border — add one.
-             The date picker button/range already has a border — soften it to the same shade. */
+          /* Search bar box: light grey border matching graph borders. */
           .osdQueryBar__wrap,
           .globalQueryBar .euiFormControlLayout,
           .globalQueryBar .ouiFormControlLayout {
-            border: 1px solid #d3d3d3 !important;
+            border: none !important;
             border-radius: 4px !important;
+            box-shadow: 0 0 0 1px #d3d3d3 !important;
           }
-          .euiSuperDatePickerShowDatesButton,
-          .ouiSuperDatePickerShowDatesButton,
-          .euiSuperDatePickerToggleQuickSelectButton,
-          .ouiSuperDatePickerToggleQuickSelectButton,
-          .euiDatePickerRange,
-          .ouiDatePickerRange {
-            border-color: #d3d3d3 !important;
+          /* Date picker box: same light grey border.
+             Suppress inner range shadow to avoid double-border. */
+          .ouiSuperDatePicker,
+          .euiSuperDatePicker {
+            box-shadow: 0 0 0 1px #d3d3d3 !important;
+          }
+          .ouiDatePickerRange,
+          .euiDatePickerRange {
+            box-shadow: none !important;
+          }
+
+          /* Lucene/DQL language switcher (ouiFormControlLayout__append) inside query
+             bar — suppress its own inset shadow and border since the outer group
+             already provides our flat 1px border. */
+          .osdQueryBar__wrap .ouiSelect,
+          .osdQueryBar__wrap .euiSelect,
+          .osdQueryBar__wrap .ouiFormControlLayout__append,
+          .osdQueryBar__wrap .euiFormControlLayout__append {
+            box-shadow: none !important;
+            border: none !important;
           }
           .navbar.navbar-fixed-top {
             z-index: 19999 !important;
@@ -773,6 +785,77 @@ export function Header({
             display: block !important;
           }
           #osd-top-nav-helper { display: none !important; }
+
+          /* Prevent Administration/User Options/Help items from wrapping to next line,
+             and vertically center them within the 50px navbar. */
+          .navbar-right {
+            display: inline-flex !important;
+            align-items: center !important;
+            height: 50px !important;
+            min-width: max-content !important;
+            margin-top: 0 !important;
+          }
+          .navbar-right > ul {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            list-style: none !important;
+          }
+          .navbar-right > ul > li {
+            display: inline-flex !important;
+            align-items: center !important;
+          }
+          /* Remove the top margin on header icons that pushes them below center */
+          .navbar-right .header-icon {
+            margin-top: 0 !important;
+          }
+
+          /* When only the date picker shows (no query input), center it in the row.
+             Without this, cssLoaded=false causes it to appear left-aligned. */
+          .osdQueryBar--withDatePicker {
+            justify-content: center !important;
+          }
+
+          /* Flyouts (inspect window, console help) must appear above the fixed LR navbar.
+             top: 50px pushes the flyout below the 50px navbar so the title/close button
+             are fully visible; z-index ensures it paints above any overlay. */
+          .euiFlyout,
+          .ouiFlyout {
+            z-index: 20001 !important;
+            top: 50px !important;
+          }
+
+          /* Action menu section (EuiHeaderSectionItem) must grow to fill nm-action-row width */
+          .nm-action-row .headerAppActionMenuSection {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+          }
+          .nm-action-row .headerAppActionMenu {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            width: 100% !important;
+          }
+          /* EuiFlexGroup portaled by TopNavMenu must fill the container width */
+          .nm-action-row .headerAppActionMenu > .ouiFlexGroup,
+          .nm-action-row .headerAppActionMenu > .euiFlexGroup {
+            width: 100% !important;
+          }
+          /* .globalDatePicker is a growing EuiFlexItem — center its block-level child div */
+          .nm-action-row .globalDatePicker {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+          }
+          /* The div[ref=datePickerRef] inside globalDatePicker fills full width (block).
+             Target the EuiFlexGroup INSIDE it to center the date picker content. */
+          .nm-action-row .globalDatePicker .ouiFlexGroup,
+          .nm-action-row .globalDatePicker .euiFlexGroup {
+            justify-content: center !important;
+          }
 
           /* Strip EuiHeaderSectionItem borders inside the action-buttons row */
           .nm-action-row .ouiHeaderSectionItem::after,
@@ -807,10 +890,16 @@ export function Header({
             font-size: 16px !important;
           }
 
-          /* Search textarea — vertically center single-line text within the control height */
+          /* Search textarea — vertically center single-line text.
+             Remove the OUI textarea's own inset box-shadow so it doesn't double up
+             with the group's outer shadow at the top.
+             Override translateY(-1px) so the group's outer shadow is equally visible
+             at top and bottom (with Y-shift the textarea covers the bottom shadow). */
           .osdQueryBar__textarea {
             padding-top: 9px !important;
             padding-bottom: 9px !important;
+            transform: translateX(-1px) !important;
+            box-shadow: none !important;
           }
 
           /* Hide the legacy collapsible nav flyout — replaced by NmLeftNav permanent sidebar */

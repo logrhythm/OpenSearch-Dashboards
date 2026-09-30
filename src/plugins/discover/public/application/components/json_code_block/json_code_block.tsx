@@ -39,8 +39,17 @@ export function JsonCodeBlock({ hit }: DocViewRenderProps) {
     defaultMessage: 'Read only JSON view of an opensearch document',
   });
   return (
-    <EuiCodeBlock aria-label={label} language="json" isCopyable paddingSize="s" fontSize="s">
-      {stringify(hit, null, 2)}
-    </EuiCodeBlock>
+    <div style={{ backgroundColor: '#f5f7fa', borderRadius: '4px' }}>
+      <EuiCodeBlock
+        aria-label={label}
+        language="json"
+        isCopyable
+        paddingSize="s"
+        fontSize="s"
+        transparentBackground
+      >
+        {stringify(hit, null, 2)}
+      </EuiCodeBlock>
+    </div>
   );
 }
