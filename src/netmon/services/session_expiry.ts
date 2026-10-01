@@ -12,7 +12,7 @@
 /*
  * Session expiry handling.
  *
- * OSD sits behind the nm-web-app auth proxy (kibana-auth.php). When the session
+ * OSD sits behind the nm-web-app auth proxy (osd-auth.php). When the session
  * expires the proxy answers with either:
  *   - 401 JSON (+ X-Auth-Required header) for requests it recognises as AJAX, or
  *   - a 200 HTML page that does `window.location.replace('/login')` for everything
