@@ -31,9 +31,14 @@
 import { i18n } from '@osd/i18n';
 import { CoreSystem } from './core_system';
 import { ApmSystem } from './apm_system';
+import { installSessionExpiryHandler } from '../../netmon/services/session_expiry';
 
 /** @internal */
 export async function __osdBootstrap__() {
+  // Must run before any request so an expired session redirects to login
+  // instead of leaving a blank page.
+  installSessionExpiryHandler();
+
   const injectedMetadata = JSON.parse(
     document.querySelector('osd-injected-metadata')!.getAttribute('data')!
   );
