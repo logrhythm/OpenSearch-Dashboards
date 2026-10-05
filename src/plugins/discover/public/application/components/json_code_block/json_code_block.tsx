@@ -33,13 +33,14 @@ import { EuiCodeBlock } from '@elastic/eui';
 import { i18n } from '@osd/i18n';
 import { stringify } from '@osd/std';
 import { DocViewRenderProps } from '../../doc_views/doc_views_types';
+import { nmThemeColors } from '../../../../../../netmon/utils/ui_theme';
 
 export function JsonCodeBlock({ hit }: DocViewRenderProps) {
   const label = i18n.translate('discover.docViews.json.codeEditorAriaLabel', {
     defaultMessage: 'Read only JSON view of an opensearch document',
   });
   return (
-    <div style={{ backgroundColor: '#f5f7fa', borderRadius: '4px' }}>
+    <div style={{ backgroundColor: nmThemeColors.codeBackground, borderRadius: '4px' }}>
       <EuiCodeBlock
         aria-label={label}
         language="json"

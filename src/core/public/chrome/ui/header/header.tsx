@@ -78,6 +78,7 @@ import { HeaderNavControls } from './header_nav_controls';
 import { RecentItems } from './recent_items';
 import { GlobalSearchCommand } from '../../global_search';
 import { LogRhythmNavbar } from '../../../../../netmon/components/navbar';
+import { isDarkMode, nmThemeColors } from '../../../../../netmon/utils/ui_theme';
 import {
   NmLeftNav,
   APPS_WITHOUT_TITLE,
@@ -514,7 +515,7 @@ export function Header({
             display: 'flex',
             alignItems: 'center',
             padding: '0 8px',
-            backgroundColor: '#fff',
+            backgroundColor: nmThemeColors.background,
             fontSize: '16px',
             fontWeight: 600,
             overflow: 'hidden',
@@ -558,7 +559,7 @@ export function Header({
             display: 'flex',
             alignItems: 'center',
             padding: '0 4px',
-            backgroundColor: '#fff',
+            backgroundColor: nmThemeColors.background,
           }}
         >
           {actionMenu}
@@ -678,10 +679,10 @@ export function Header({
           pointerEvents: 'auto',
           overflow: 'visible',
           background: navbarReady
-            ? document.documentElement.classList.contains('Night')
+            ? isDarkMode()
               ? 'linear-gradient(#575a5c, #424446)'
               : 'linear-gradient(#e6e6e6, #d4d4d4)'
-            : '#fff',
+            : nmThemeColors.navbarPlaceholder,
         }}
       >
         <LogRhythmNavbar />
@@ -696,7 +697,7 @@ export function Header({
             margin-top: 0 !important;
             padding-top: 90px !important;
             padding-left: 48px !important;
-            background-color: #fff !important;
+            background-color: ${nmThemeColors.background} !important;
           }
           /* White background for all page layout containers */
           .euiPage, .ouiPage,
@@ -706,7 +707,7 @@ export function Header({
           .euiPageTemplate, .ouiPageTemplate,
           .euiPageTemplate__panelled, .euiPageTemplate__centeredContent,
           .application {
-            background-color: #fff !important;
+            background-color: ${nmThemeColors.background} !important;
           }
           /* White background on ALL form controls, inputs, textareas, and date pickers.
              Use * child selector too so inner wrappers are covered. */
@@ -728,19 +729,19 @@ export function Header({
           .osdQueryBar__wrap,
           .osdQueryBar__textareaWrap,
           .globalQueryBar {
-            background-color: #fff !important;
+            background-color: ${nmThemeColors.formBackground} !important;
           }
           /* White on header/toolbar link containers */
           .euiHeaderLinks, .ouiHeaderLinks,
           .euiHeaderLinks__list, .ouiHeaderLinks__list,
           .euiHeader, .ouiHeader {
-            background-color: #fff !important;
+            background-color: ${nmThemeColors.background} !important;
           }
           /* White on all sidebar/nav containers */
           .euiSideNav, .ouiSideNav,
           .mgtSideBarNav,
           .euiCollapsibleNavGroup, .ouiCollapsibleNavGroup {
-            background-color: #fff !important;
+            background-color: ${nmThemeColors.background} !important;
           }
           /* Search bar box: light grey border matching graph borders. */
           .osdQueryBar__wrap,
@@ -748,13 +749,13 @@ export function Header({
           .globalQueryBar .ouiFormControlLayout {
             border: none !important;
             border-radius: 4px !important;
-            box-shadow: 0 0 0 1px #d3d3d3 !important;
+            box-shadow: 0 0 0 1px ${nmThemeColors.border} !important;
           }
           /* Date picker box: same light grey border.
              Suppress inner range shadow to avoid double-border. */
           .ouiSuperDatePicker,
           .euiSuperDatePicker {
-            box-shadow: 0 0 0 1px #d3d3d3 !important;
+            box-shadow: 0 0 0 1px ${nmThemeColors.border} !important;
           }
           .ouiDatePickerRange,
           .euiDatePickerRange {
@@ -900,6 +901,22 @@ export function Header({
             padding-bottom: 9px !important;
             transform: translateX(-1px) !important;
             box-shadow: none !important;
+          }
+
+          /* lr-style sets bare pre { color: #373a3c } and code { color/background }, which
+             break OUI code blocks (e.g. Inspect > Requests > Request/Response): their text
+             colour lives on the .euiCodeBlock wrapper and must be inherited. */
+          html.Night pre {
+            color: inherit;
+          }
+          html.Night code {
+            color: inherit;
+            background-color: ${nmThemeColors.codeBackground};
+          }
+          html .euiCodeBlock pre, html .euiCodeBlock code,
+          html .ouiCodeBlock pre, html .ouiCodeBlock code {
+            color: inherit;
+            background-color: transparent;
           }
 
           /* Hide the legacy collapsible nav flyout — replaced by NmLeftNav permanent sidebar */

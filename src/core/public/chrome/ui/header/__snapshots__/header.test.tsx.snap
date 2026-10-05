@@ -2012,6 +2012,22 @@ exports[`Header handles visibility and lock changes 1`] = `
             box-shadow: none !important;
           }
 
+          /* lr-style sets bare pre { color: #373a3c } and code { color/background }, which
+             break OUI code blocks (e.g. Inspect > Requests > Request/Response): their text
+             colour lives on the .euiCodeBlock wrapper and must be inherited. */
+          html.Night pre {
+            color: inherit;
+          }
+          html.Night code {
+            color: inherit;
+            background-color: #f5f7fa;
+          }
+          html .euiCodeBlock pre, html .euiCodeBlock code,
+          html .ouiCodeBlock pre, html .ouiCodeBlock code {
+            color: inherit;
+            background-color: transparent;
+          }
+
           /* Hide the legacy collapsible nav flyout — replaced by NmLeftNav permanent sidebar */
           .ouiCollapsibleNav,
           .euiCollapsibleNav {
@@ -5076,6 +5092,22 @@ exports[`Header renders application header without title and breadcrumbs 1`] = `
             padding-bottom: 9px !important;
             transform: translateX(-1px) !important;
             box-shadow: none !important;
+          }
+
+          /* lr-style sets bare pre { color: #373a3c } and code { color/background }, which
+             break OUI code blocks (e.g. Inspect > Requests > Request/Response): their text
+             colour lives on the .euiCodeBlock wrapper and must be inherited. */
+          html.Night pre {
+            color: inherit;
+          }
+          html.Night code {
+            color: inherit;
+            background-color: #f5f7fa;
+          }
+          html .euiCodeBlock pre, html .euiCodeBlock code,
+          html .ouiCodeBlock pre, html .ouiCodeBlock code {
+            color: inherit;
+            background-color: transparent;
           }
 
           /* Hide the legacy collapsible nav flyout — replaced by NmLeftNav permanent sidebar */
@@ -8304,6 +8336,22 @@ exports[`Header renders condensed header 1`] = `
             box-shadow: none !important;
           }
 
+          /* lr-style sets bare pre { color: #373a3c } and code { color/background }, which
+             break OUI code blocks (e.g. Inspect > Requests > Request/Response): their text
+             colour lives on the .euiCodeBlock wrapper and must be inherited. */
+          html.Night pre {
+            color: inherit;
+          }
+          html.Night code {
+            color: inherit;
+            background-color: #f5f7fa;
+          }
+          html .euiCodeBlock pre, html .euiCodeBlock code,
+          html .ouiCodeBlock pre, html .ouiCodeBlock code {
+            color: inherit;
+            background-color: transparent;
+          }
+
           /* Hide the legacy collapsible nav flyout — replaced by NmLeftNav permanent sidebar */
           .ouiCollapsibleNav,
           .euiCollapsibleNav {
@@ -11526,6 +11574,22 @@ exports[`Header renders page header with application title 1`] = `
             padding-bottom: 9px !important;
             transform: translateX(-1px) !important;
             box-shadow: none !important;
+          }
+
+          /* lr-style sets bare pre { color: #373a3c } and code { color/background }, which
+             break OUI code blocks (e.g. Inspect > Requests > Request/Response): their text
+             colour lives on the .euiCodeBlock wrapper and must be inherited. */
+          html.Night pre {
+            color: inherit;
+          }
+          html.Night code {
+            color: inherit;
+            background-color: #f5f7fa;
+          }
+          html .euiCodeBlock pre, html .euiCodeBlock code,
+          html .ouiCodeBlock pre, html .ouiCodeBlock code {
+            color: inherit;
+            background-color: transparent;
           }
 
           /* Hide the legacy collapsible nav flyout — replaced by NmLeftNav permanent sidebar */
@@ -15329,6 +15393,22 @@ exports[`Header toggles primary navigation menu when clicked 1`] = `
             padding-bottom: 9px !important;
             transform: translateX(-1px) !important;
             box-shadow: none !important;
+          }
+
+          /* lr-style sets bare pre { color: #373a3c } and code { color/background }, which
+             break OUI code blocks (e.g. Inspect > Requests > Request/Response): their text
+             colour lives on the .euiCodeBlock wrapper and must be inherited. */
+          html.Night pre {
+            color: inherit;
+          }
+          html.Night code {
+            color: inherit;
+            background-color: #f5f7fa;
+          }
+          html .euiCodeBlock pre, html .euiCodeBlock code,
+          html .ouiCodeBlock pre, html .ouiCodeBlock code {
+            color: inherit;
+            background-color: transparent;
           }
 
           /* Hide the legacy collapsible nav flyout — replaced by NmLeftNav permanent sidebar */

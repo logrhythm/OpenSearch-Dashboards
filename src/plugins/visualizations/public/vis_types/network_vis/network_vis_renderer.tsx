@@ -24,6 +24,14 @@
 
 import { ExpressionRenderDefinition, KibanaDatatable } from '../../../../expressions/public';
 import { NetworkVisRenderValue } from './network_vis_fn';
+import { isDarkMode, nmThemeColors } from '../../../../../netmon/utils/ui_theme';
+
+// The vis defaults (white canvas, black labels) are persisted in saved visualizations.
+// In dark mode treat those defaults as "follow the theme"; custom colours are kept.
+const themedColor = (value: string | undefined, lightDefault: string, darkColor: string) => {
+  if (isDarkMode() && (!value || value.toUpperCase() === lightDefault)) return darkColor;
+  return value || lightDefault;
+};
 
 interface Node {
   id: string;
@@ -378,7 +386,7 @@ const renderNoData = (domNode: HTMLElement) => {
   empty.style.justifyContent = 'center';
   empty.style.width = '100%';
   empty.style.height = '100%';
-  empty.style.color = '#666';
+  empty.style.color = isDarkMode() ? nmThemeColors.subduedText : '#666';
   empty.style.fontSize = '14px';
   empty.textContent = 'No network data available for current filters';
   domNode.appendChild(empty);
@@ -413,7 +421,11 @@ const networkVisRenderer: ExpressionRenderDefinition<NetworkVisRenderValue> = {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', String(width));
     svg.setAttribute('height', String(height));
-    svg.style.backgroundColor = params.canvasBackgroundColor || '#FFFFFF';
+    svg.style.backgroundColor = themedColor(
+      params.canvasBackgroundColor,
+      '#FFFFFF',
+      nmThemeColors.background
+    );
 
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     svg.appendChild(g);
@@ -532,7 +544,7 @@ const networkVisRenderer: ExpressionRenderDefinition<NetworkVisRenderValue> = {
         text.setAttribute('y', String(node.y + nodeSize / 2 + 12));
         text.setAttribute('text-anchor', 'middle');
         text.setAttribute('font-size', '10');
-        text.setAttribute('fill', params.labelColor || '#000000');
+        text.setAttribute('fill', themedColor(params.labelColor, '#000000', nmThemeColors.text));
         text.setAttribute('pointer-events', 'none');
         text.textContent = node.id.length > 18 ? `${node.id.slice(0, 15)}...` : node.id;
         g.appendChild(text);
@@ -551,7 +563,7 @@ const networkVisRenderer: ExpressionRenderDefinition<NetworkVisRenderValue> = {
       bg.setAttribute('y', String(legendY - 14));
       bg.setAttribute('width', '170');
       bg.setAttribute('height', String(24 + legendKeys.length * lineHeight));
-      bg.setAttribute('fill', '#efefef');
+      bg.setAttribute('fill', isDarkMode() ? nmThemeColors.rowHover : '#efefef');
       bg.setAttribute('fill-opacity', '0.9');
       legendGroup.appendChild(bg);
 
@@ -560,7 +572,7 @@ const networkVisRenderer: ExpressionRenderDefinition<NetworkVisRenderValue> = {
       title.setAttribute('y', String(legendY));
       title.setAttribute('font-size', '11');
       title.setAttribute('font-weight', 'bold');
-      title.setAttribute('fill', '#555');
+      title.setAttribute('fill', isDarkMode() ? nmThemeColors.subduedText : '#555');
       title.textContent = 'COLOR LEGEND:';
       legendGroup.appendChild(title);
 
