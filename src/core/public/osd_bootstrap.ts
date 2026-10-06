@@ -32,6 +32,7 @@ import { i18n } from '@osd/i18n';
 import { CoreSystem } from './core_system';
 import { ApmSystem } from './apm_system';
 import { installSessionExpiryHandler } from '../../netmon/services/session_expiry';
+import { applyUiThemeClass } from '../../netmon/utils/ui_theme';
 
 /** @internal */
 export async function __osdBootstrap__() {
@@ -47,6 +48,8 @@ export async function __osdBootstrap__() {
   const themeTag: string = globals.__osdThemeTag__ || '';
 
   injectedMetadata.branding.darkMode = themeTag.endsWith('dark');
+  // NetMon (lr-style / nm-web-shared) styles key off a Day/Night class on <html>.
+  applyUiThemeClass(injectedMetadata.branding.darkMode);
 
   let i18nError: Error | undefined;
   const apmSystem = new ApmSystem(injectedMetadata.vars.apmConfig, injectedMetadata.basePath);

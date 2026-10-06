@@ -16,6 +16,7 @@ import * as Rx from 'rxjs';
 import { ChromeNavLink, ChromeRecentlyAccessedHistoryItem } from '../../core/public/chrome';
 import { HttpStart } from '../../core/public/http';
 import { InternalApplicationStart } from '../../core/public/application/types';
+import { nmThemeColors } from '../utils/ui_theme';
 
 interface NmLeftNavProps {
   navLinks$: Rx.Observable<ChromeNavLink[]>;
@@ -109,7 +110,7 @@ export function NmLeftNav({
     overflow: 'hidden',
     userSelect: 'none' as const,
     backgroundColor: forceBg != null ? forceBg : 'transparent',
-    color: '#343741',
+    color: nmThemeColors.text,
   });
 
   const labelStyle: React.CSSProperties = {
@@ -141,8 +142,8 @@ export function NmLeftNav({
           bottom: 0,
           width,
           zIndex: 1001,
-          backgroundColor: '#fff',
-          borderRight: '1px solid #d3d3d3',
+          backgroundColor: nmThemeColors.background,
+          borderRight: `1px solid ${nmThemeColors.border}`,
           display: 'flex',
           flexDirection: 'column',
           transition: 'width 0.2s ease',
@@ -154,18 +155,18 @@ export function NmLeftNav({
           <div
             role="button"
             tabIndex={0}
-            style={rowStyle(false, showRecent ? '#e8e8e8' : undefined)}
+            style={rowStyle(false, showRecent ? nmThemeColors.hover : undefined)}
             onClick={() => setShowRecent(!showRecent)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') setShowRecent(!showRecent);
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.backgroundColor = '#e8e8e8';
+              (e.currentTarget as HTMLElement).style.backgroundColor = nmThemeColors.hover;
               showTooltip(e, 'Recently viewed');
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLElement).style.backgroundColor = showRecent
-                ? '#e8e8e8'
+                ? nmThemeColors.hover
                 : 'transparent';
               hideTooltip();
             }}
@@ -176,7 +177,7 @@ export function NmLeftNav({
         </div>
 
         {/* Divider */}
-        <div style={{ height: '1px', backgroundColor: '#e0e0e0', margin: '2px 8px' }} />
+        <div style={{ height: '1px', backgroundColor: nmThemeColors.divider, margin: '2px 8px' }} />
 
         {/* Nav items */}
         {NAV_ITEMS.map(({ id, label, icon }) => {
@@ -197,7 +198,7 @@ export function NmLeftNav({
                 }
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.backgroundColor = '#e8e8e8';
+                (e.currentTarget as HTMLElement).style.backgroundColor = nmThemeColors.hover;
                 showTooltip(e, label);
               }}
               onMouseLeave={(e) => {
@@ -218,13 +219,13 @@ export function NmLeftNav({
         <div
           role="button"
           tabIndex={0}
-          style={{ ...rowStyle(false), borderTop: '1px solid #e0e0e0' }}
+          style={{ ...rowStyle(false), borderTop: `1px solid ${nmThemeColors.divider}` }}
           onClick={() => setIsExpanded(!isExpanded)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') setIsExpanded(!isExpanded);
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.backgroundColor = '#e8e8e8';
+            (e.currentTarget as HTMLElement).style.backgroundColor = nmThemeColors.hover;
             showTooltip(e, isExpanded ? 'Collapse' : 'Expand');
           }}
           onMouseLeave={(e) => {
@@ -299,8 +300,8 @@ export function NmLeftNav({
               width: 280,
               maxHeight: 'calc(100vh - 50px)',
               overflowY: 'auto',
-              backgroundColor: '#fff',
-              border: '1px solid #d3d3d3',
+              backgroundColor: nmThemeColors.background,
+              border: `1px solid ${nmThemeColors.border}`,
               borderRadius: '0 0 4px 0',
               boxShadow: '4px 4px 12px rgba(0,0,0,0.12)',
               zIndex: 20002,
@@ -312,15 +313,15 @@ export function NmLeftNav({
                 fontSize: '11px',
                 fontWeight: 700,
                 textTransform: 'uppercase' as const,
-                color: '#6a717d',
-                borderBottom: '1px solid #e0e0e0',
+                color: nmThemeColors.subduedText,
+                borderBottom: `1px solid ${nmThemeColors.divider}`,
                 letterSpacing: '0.05em',
               }}
             >
               Recently viewed
             </div>
             {recentlyAccessed.length === 0 ? (
-              <div style={{ padding: '14px', fontSize: '14px', color: '#6a717d' }}>
+              <div style={{ padding: '14px', fontSize: '14px', color: nmThemeColors.subduedText }}>
                 No recently viewed items
               </div>
             ) : (
@@ -338,13 +339,14 @@ export function NmLeftNav({
                       padding: '9px 14px',
                       fontSize: '14px',
                       overflow: 'hidden',
-                      borderBottom: '1px solid #f0f0f0',
-                      color: '#343741',
+                      borderBottom: `1px solid ${nmThemeColors.rowDivider}`,
+                      color: nmThemeColors.text,
                       textDecoration: 'none',
                     }}
                     onClick={(e) => handleRecentClick(e, href)}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.backgroundColor = '#f5f5f5';
+                      (e.currentTarget as HTMLElement).style.backgroundColor =
+                        nmThemeColors.rowHover;
                     }}
                     onMouseLeave={(e) => {
                       (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
