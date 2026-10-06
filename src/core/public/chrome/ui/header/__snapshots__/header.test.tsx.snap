@@ -1939,6 +1939,14 @@ exports[`Header handles visibility and lock changes 1`] = `
             top: 50px !important;
           }
 
+          /* NetMon blocking modals (PCAP download, Save Rule) raise their overlay mask above
+             the fixed LR navbar (see NmBlockingOverlay). Keep toasts raised by those modals
+             visible above the mask. */
+          .ouiGlobalToastList,
+          .euiGlobalToastList {
+            z-index: 20010 !important;
+          }
+
           /* Action menu section (EuiHeaderSectionItem) must grow to fill nm-action-row width */
           .nm-action-row .headerAppActionMenuSection {
             flex: 1 1 auto !important;
@@ -5019,6 +5027,14 @@ exports[`Header renders application header without title and breadcrumbs 1`] = `
           .ouiFlyout {
             z-index: 20001 !important;
             top: 50px !important;
+          }
+
+          /* NetMon blocking modals (PCAP download, Save Rule) raise their overlay mask above
+             the fixed LR navbar (see NmBlockingOverlay). Keep toasts raised by those modals
+             visible above the mask. */
+          .ouiGlobalToastList,
+          .euiGlobalToastList {
+            z-index: 20010 !important;
           }
 
           /* Action menu section (EuiHeaderSectionItem) must grow to fill nm-action-row width */
@@ -8263,6 +8279,14 @@ exports[`Header renders condensed header 1`] = `
             top: 50px !important;
           }
 
+          /* NetMon blocking modals (PCAP download, Save Rule) raise their overlay mask above
+             the fixed LR navbar (see NmBlockingOverlay). Keep toasts raised by those modals
+             visible above the mask. */
+          .ouiGlobalToastList,
+          .euiGlobalToastList {
+            z-index: 20010 !important;
+          }
+
           /* Action menu section (EuiHeaderSectionItem) must grow to fill nm-action-row width */
           .nm-action-row .headerAppActionMenuSection {
             flex: 1 1 auto !important;
@@ -11501,6 +11525,14 @@ exports[`Header renders page header with application title 1`] = `
           .ouiFlyout {
             z-index: 20001 !important;
             top: 50px !important;
+          }
+
+          /* NetMon blocking modals (PCAP download, Save Rule) raise their overlay mask above
+             the fixed LR navbar (see NmBlockingOverlay). Keep toasts raised by those modals
+             visible above the mask. */
+          .ouiGlobalToastList,
+          .euiGlobalToastList {
+            z-index: 20010 !important;
           }
 
           /* Action menu section (EuiHeaderSectionItem) must grow to fill nm-action-row width */
@@ -15320,6 +15352,14 @@ exports[`Header toggles primary navigation menu when clicked 1`] = `
           .ouiFlyout {
             z-index: 20001 !important;
             top: 50px !important;
+          }
+
+          /* NetMon blocking modals (PCAP download, Save Rule) raise their overlay mask above
+             the fixed LR navbar (see NmBlockingOverlay). Keep toasts raised by those modals
+             visible above the mask. */
+          .ouiGlobalToastList,
+          .euiGlobalToastList {
+            z-index: 20010 !important;
           }
 
           /* Action menu section (EuiHeaderSectionItem) must grow to fill nm-action-row width */

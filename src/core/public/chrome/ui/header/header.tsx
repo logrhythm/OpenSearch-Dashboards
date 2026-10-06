@@ -830,6 +830,14 @@ export function Header({
             top: 50px !important;
           }
 
+          /* NetMon blocking modals (PCAP download, Save Rule) raise their overlay mask above
+             the fixed LR navbar (see NmBlockingOverlay). Keep toasts raised by those modals
+             visible above the mask. */
+          .ouiGlobalToastList,
+          .euiGlobalToastList {
+            z-index: 20010 !important;
+          }
+
           /* Action menu section (EuiHeaderSectionItem) must grow to fill nm-action-row width */
           .nm-action-row .headerAppActionMenuSection {
             flex: 1 1 auto !important;

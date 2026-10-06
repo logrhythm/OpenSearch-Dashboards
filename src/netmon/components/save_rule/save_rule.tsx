@@ -40,7 +40,6 @@ import {
   EuiModalFooter,
   EuiModalHeader,
   EuiModalHeaderTitle,
-  EuiOverlayMask,
   EuiTextColor,
   EuiToolTip,
 } from '@elastic/eui';
@@ -52,6 +51,7 @@ import {
 } from '@logrhythm/nm-web-shared/services/query_rules';
 import { preprocessQuery } from '../../utils/query_preprocessing';
 import { SaveRuleForm, SaveRuleFormDataValidation } from './save_rule_form';
+import { NmBlockingOverlay } from '../nm_blocking_overlay';
 
 const useStyles = makeStyles({
   buttonContent: {
@@ -268,64 +268,63 @@ export const SaveRule = (props: SaveRuleProps) => {
   const handleModalConfirm = triggerCount === null ? checkTriggerCount : saveRule;
 
   const modal = !!saveRuleData && (
-    <EuiOverlayMask>
-      <EuiModal onClose={cancelSaveRule}>
-        <EuiModalHeader>
-          <EuiModalHeaderTitle>
-            <EuiTextColor color={saveSuccess === false ? 'danger' : 'default'}>
-              {saveSuccess === null && 'Create Rule'}
-              {saveSuccess === true && 'Save Complete'}
-              {saveSuccess === false && 'Save Failed'}
-            </EuiTextColor>
-          </EuiModalHeaderTitle>
-        </EuiModalHeader>
+    <EuiModal onClose={cancelSaveRule}>
+      <NmBlockingOverlay />
+      <EuiModalHeader>
+        <EuiModalHeaderTitle>
+          <EuiTextColor color={saveSuccess === false ? 'danger' : 'default'}>
+            {saveSuccess === null && 'Create Rule'}
+            {saveSuccess === true && 'Save Complete'}
+            {saveSuccess === false && 'Save Failed'}
+          </EuiTextColor>
+        </EuiModalHeaderTitle>
+      </EuiModalHeader>
 
-        <EuiModalBody>
-          {triggerCount === null && saveSuccess === null && !loading && (
-            <SaveRuleForm
-              value={saveRuleData}
-              onChange={(val) => {
-                dispatch({ type: 'UPDATE_RULE_DATA', ruleData: val });
-              }}
-              validation={validation}
-            />
-          )}
-          {triggerCount !== null && saveSuccess === null && !loading && (
-            <p>
-              In the last 24 hours, this rule would have triggered{' '}
-              <strong>{triggerCount.toLocaleString()}</strong> time(s).
-              <br />
-              <br />
-              Are you sure you want to create the rule {saveRuleData.id}?
-            </p>
-          )}
-          {triggerCount !== null && saveSuccess !== null && !loading && (
-            <p>
-              <EuiTextColor color={saveSuccess === false ? 'danger' : 'default'}>
-                {saveSuccess && 'Rule saved successfully'}
-                {!saveSuccess && 'Rule save failed. Please try again.'}
-              </EuiTextColor>
-            </p>
-          )}
-          {loading && (
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <EuiLoadingSpinner size="xl" />
-            </div>
-          )}
-        </EuiModalBody>
-
-        {!loading && (
-          <EuiModalFooter>
-            {saveSuccess === null && (
-              <EuiButton fill onClick={handleModalConfirm} isDisabled={!!rawValidation}>
-                {triggerCount === null ? 'Save' : 'Confirm'}
-              </EuiButton>
-            )}
-            <EuiButton onClick={cancelSaveRule}>Close</EuiButton>
-          </EuiModalFooter>
+      <EuiModalBody>
+        {triggerCount === null && saveSuccess === null && !loading && (
+          <SaveRuleForm
+            value={saveRuleData}
+            onChange={(val) => {
+              dispatch({ type: 'UPDATE_RULE_DATA', ruleData: val });
+            }}
+            validation={validation}
+          />
         )}
-      </EuiModal>
-    </EuiOverlayMask>
+        {triggerCount !== null && saveSuccess === null && !loading && (
+          <p>
+            In the last 24 hours, this rule would have triggered{' '}
+            <strong>{triggerCount.toLocaleString()}</strong> time(s).
+            <br />
+            <br />
+            Are you sure you want to create the rule {saveRuleData.id}?
+          </p>
+        )}
+        {triggerCount !== null && saveSuccess !== null && !loading && (
+          <p>
+            <EuiTextColor color={saveSuccess === false ? 'danger' : 'default'}>
+              {saveSuccess && 'Rule saved successfully'}
+              {!saveSuccess && 'Rule save failed. Please try again.'}
+            </EuiTextColor>
+          </p>
+        )}
+        {loading && (
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <EuiLoadingSpinner size="xl" />
+          </div>
+        )}
+      </EuiModalBody>
+
+      {!loading && (
+        <EuiModalFooter>
+          {saveSuccess === null && (
+            <EuiButton fill onClick={handleModalConfirm} isDisabled={!!rawValidation}>
+              {triggerCount === null ? 'Save' : 'Confirm'}
+            </EuiButton>
+          )}
+          <EuiButton onClick={cancelSaveRule}>Close</EuiButton>
+        </EuiModalFooter>
+      )}
+    </EuiModal>
   );
 
   return (
