@@ -24,27 +24,32 @@
 
 import { BaseVisTypeOptions } from '../base_vis_type';
 import { Vis } from '../../vis';
+import { BuildPipelineParams } from '../../legacy/build_pipeline';
 import { buildExpression, buildExpressionFunction } from '../../../../expressions/public';
-import { EsaggsExpressionFunctionDefinition } from '../../../../data/common/search/expressions';
+import { OpenSearchaggsExpressionFunctionDefinition } from '../../../../data/common/search/expressions';
+import { Schemas } from '../../../../vis_default_editor/public';
 
 /**
  * Network graph visualization - renders force-directed node-link diagrams
  */
 export const createNetworkVisTypeDefinition = (): BaseVisTypeOptions => {
-  const toExpressionAst = (vis: Vis) => {
-    const esaggs = buildExpressionFunction<EsaggsExpressionFunctionDefinition>('esaggs', {
-      index: vis.data.indexPattern!.id!,
-      metricsAtAllLevels: vis.isHierarchical(),
-      partialRows: vis.params.showPartialRows || false,
-      aggConfigs: JSON.stringify(vis.data.aggs!.aggs),
-      includeFormatHints: false,
-    });
+  const toExpressionAst = (vis: Vis, params: BuildPipelineParams) => {
+    const opensearchaggs = buildExpressionFunction<OpenSearchaggsExpressionFunctionDefinition>(
+      'opensearchaggs',
+      {
+        index: vis.data.indexPattern!.id!,
+        metricsAtAllLevels: vis.isHierarchical(),
+        partialRows: vis.params.showPartialRows || false,
+        aggConfigs: JSON.stringify(vis.data.aggs!.aggs),
+        includeFormatHints: false,
+      }
+    );
 
     const networkVis = buildExpressionFunction('network_vis', {
       params: JSON.stringify(vis.params || {}),
     });
 
-    return buildExpression([esaggs, networkVis]).toAst();
+    return buildExpression([opensearchaggs, networkVis]).toAst();
   };
 
   return {
@@ -87,9 +92,7 @@ export const createNetworkVisTypeDefinition = (): BaseVisTypeOptions => {
     },
     editorConfig: {
       collections: {},
-    },
-    schemas: {
-      all: [
+      schemas: new Schemas([
         {
           group: 'metrics',
           name: 'metric',
@@ -135,7 +138,7 @@ export const createNetworkVisTypeDefinition = (): BaseVisTypeOptions => {
           min: 0,
           max: 1,
         },
-      ],
+      ]),
     },
   };
 };

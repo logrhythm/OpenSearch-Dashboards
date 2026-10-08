@@ -24,19 +24,19 @@
 
 import {
   ExpressionFunctionDefinition,
-  KibanaDatatable,
+  OpenSearchDashboardsDatatable,
   Render,
 } from '../../../../expressions/public';
 
 export interface NetworkVisRenderValue {
   visType: 'network';
   visParams: any;
-  visData?: KibanaDatatable;
+  visData?: OpenSearchDashboardsDatatable;
 }
 
 export type NetworkVisExpressionFunctionDefinition = ExpressionFunctionDefinition<
   'network_vis',
-  KibanaDatatable,
+  OpenSearchDashboardsDatatable,
   { params: string },
   Render<NetworkVisRenderValue>
 >;
@@ -44,7 +44,7 @@ export type NetworkVisExpressionFunctionDefinition = ExpressionFunctionDefinitio
 export const createNetworkVisFn = (): NetworkVisExpressionFunctionDefinition => ({
   name: 'network_vis',
   type: 'render',
-  inputTypes: ['kibana_datatable'],
+  inputTypes: ['opensearch_dashboards_datatable'],
   help: 'Network node-link visualization',
   args: {
     params: {

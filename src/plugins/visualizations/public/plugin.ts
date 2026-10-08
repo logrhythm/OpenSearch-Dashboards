@@ -77,6 +77,9 @@ import { visualization as visualizationFunction } from './expressions/visualizat
 import { visualization as visualizationRenderer } from './expressions/visualization_renderer';
 import { range as rangeExpressionFunction } from './expression_functions/range';
 import { visDimension as visDimensionExpressionFunction } from './expression_functions/vis_dimension';
+import { createNetworkVisTypeDefinition } from './vis_types/network_vis/network_vis_type';
+import { createNetworkVisFn } from './vis_types/network_vis/network_vis_fn';
+import { networkVisRenderer } from './vis_types/network_vis/network_vis_renderer';
 import { DataPublicPluginSetup, DataPublicPluginStart } from '../../data/public';
 import {
   Setup as InspectorSetup,
@@ -173,11 +176,15 @@ export class VisualizationsPlugin
     expressions.registerRenderer(visualizationRenderer);
     expressions.registerFunction(rangeExpressionFunction);
     expressions.registerFunction(visDimensionExpressionFunction);
+    expressions.registerFunction(createNetworkVisFn());
+    expressions.registerRenderer(networkVisRenderer);
     const embeddableFactory = new VisualizeEmbeddableFactory({ start });
     embeddable.registerEmbeddableFactory(VISUALIZE_EMBEDDABLE_TYPE, embeddableFactory);
 
+    const setupTypes = this.types.setup();
+    setupTypes.createBaseVisualization(createNetworkVisTypeDefinition());
     return {
-      ...this.types.setup(),
+      ...setupTypes,
     };
   }
 
