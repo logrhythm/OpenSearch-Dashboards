@@ -22,7 +22,10 @@
  * under the License.
  */
 
-import { ExpressionRenderDefinition, KibanaDatatable } from '../../../../expressions/public';
+import {
+  ExpressionRenderDefinition,
+  OpenSearchDashboardsDatatable,
+} from '../../../../expressions/public';
 import { NetworkVisRenderValue } from './network_vis_fn';
 import { isDarkMode, nmThemeColors } from '../../../../../netmon/utils/ui_theme';
 
@@ -80,17 +83,19 @@ const unwrapValue = (value: unknown): unknown => {
   return value;
 };
 
-const getTable = (visData?: KibanaDatatable | any): KibanaDatatable | null => {
+const getTable = (
+  visData?: OpenSearchDashboardsDatatable | any
+): OpenSearchDashboardsDatatable | null => {
   if (!visData || typeof visData !== 'object') {
     return null;
   }
 
   if (visData.type === 'kibana_datatable' && Array.isArray(visData.rows)) {
-    return visData as KibanaDatatable;
+    return visData as OpenSearchDashboardsDatatable;
   }
 
   if (visData.type === 'datatable' && Array.isArray(visData.rows)) {
-    return visData as KibanaDatatable;
+    return visData as OpenSearchDashboardsDatatable;
   }
 
   if (
@@ -98,11 +103,11 @@ const getTable = (visData?: KibanaDatatable | any): KibanaDatatable | null => {
     visData.tables.length > 0 &&
     Array.isArray(visData.tables[0].rows)
   ) {
-    return visData.tables[0] as KibanaDatatable;
+    return visData.tables[0] as OpenSearchDashboardsDatatable;
   }
 
   if (Array.isArray(visData.rows) && Array.isArray(visData.columns)) {
-    return visData as KibanaDatatable;
+    return visData as OpenSearchDashboardsDatatable;
   }
 
   return null;
@@ -129,7 +134,7 @@ const scaleMetricSqrt = (
   return outMin + ratio * (outMax - outMin);
 };
 
-function resolveFieldIds(table: KibanaDatatable, params: any) {
+function resolveFieldIds(table: OpenSearchDashboardsDatatable, params: any) {
   const columns = table.columns || [];
   const columnIds = columns.map((col) => col.id);
 
@@ -173,7 +178,10 @@ function resolveFieldIds(table: KibanaDatatable, params: any) {
   };
 }
 
-function parseNetworkData(visData: KibanaDatatable | any, params: any): ParsedNetworkData {
+function parseNetworkData(
+  visData: OpenSearchDashboardsDatatable | any,
+  params: any
+): ParsedNetworkData {
   const table = getTable(visData);
 
   if (
