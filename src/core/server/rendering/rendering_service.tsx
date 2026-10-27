@@ -392,7 +392,7 @@ export class RenderingService {
    * @returns {boolean} indicate if the URL is valid/invalid
    */
   public isUrlValid = async (url: string, configName?: string): Promise<boolean> => {
-    if (url === '/') {
+    if (url === '/' || url === '') {
       return false;
     }
     if (url.match(/\.(png|svg|gif|PNG|SVG|GIF)$/) === null) {
