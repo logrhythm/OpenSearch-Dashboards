@@ -55,7 +55,7 @@ export class OpenSearchDashboardsLegacyPlugin {
       const dashboardsRootMatch = pathName.match(/^(.*\/analyze\/app\/dashboards)\/?$/);
       const legacyKibanaAnalyzeMatch = pathName.match(/^(.*\/analyze)\/app\/kibana\/?$/);
 
-      const isBlankHash = hash === '' || hash === '#' || hash === '#/' || hash === '#/list';
+      const isBlankHash = hash === '' || hash === '#' || hash === '#/';
       const isLegacyDashboardRoot = /^#\/dashboard\/?(?:\?|$)/.test(hash);
 
       if ((analyzeRootMatch || dashboardsRootMatch) && isBlankHash) {

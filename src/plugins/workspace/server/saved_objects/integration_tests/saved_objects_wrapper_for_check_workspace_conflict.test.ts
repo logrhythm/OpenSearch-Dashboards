@@ -498,7 +498,10 @@ describe('saved_objects_wrapper_for_check_workspace_conflict integration test', 
       // or the saved objects API will do connection validation on the data source
       // which will not pass as it is a dummy data source without endpoint and credentials
       await osdTestServer.request
-        .post(root, `/api/console/proxy?path=.kibana%2F_doc%2Fdata-source%3Afoo&method=PUT`)
+        .post(
+          root,
+          `/api/console/proxy?path=.opensearch_dashboards%2F_doc%2Fdata-source%3Afoo&method=PUT`
+        )
         .send({
           type: dataSource.type,
           [dataSource.type]: {},

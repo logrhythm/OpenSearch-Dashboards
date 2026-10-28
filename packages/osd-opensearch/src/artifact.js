@@ -194,10 +194,26 @@ async function getArtifactSpecForSnapshotFromUrl(urlVersion, log) {
   }
 
   const latestUrl = `${DAILY_SNAPSHOTS_BASE_URL}/${desiredVersion}-SNAPSHOT`;
+
+  // Prefer the full distribution (with bundled JDK) so tests can run without requiring
+  // a system Java installation. Fall back to the minimal distribution if not available.
+  const fullLatestFile = `opensearch-${desiredVersion}-SNAPSHOT-${platform}-${arch}-latest.${extension}`;
+  const fullCompleteLatestUrl = `${latestUrl}/${fullLatestFile}`;
+  let { abc, resp } = await verifySnapshotUrl(fullCompleteLatestUrl, log);
+
+  if (resp.ok) {
+    return {
+      url: fullCompleteLatestUrl,
+      checksumUrl: fullCompleteLatestUrl + '.sha512',
+      checksumType: 'sha512',
+      filename: fullLatestFile,
+    };
+  }
+
   const latestFile = `opensearch-min-${desiredVersion}-SNAPSHOT-${platform}-${arch}-latest.${extension}`;
   const completeLatestUrl = `${latestUrl}/${latestFile}`;
 
-  let { abc, resp } = await verifySnapshotUrl(completeLatestUrl, log);
+  ({ abc, resp } = await verifySnapshotUrl(completeLatestUrl, log));
 
   if (resp.ok) {
     return {

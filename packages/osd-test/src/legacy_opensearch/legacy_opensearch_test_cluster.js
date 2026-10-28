@@ -63,6 +63,7 @@ export function createLegacyOpenSearchTestCluster(options = {}) {
     'discovery.type=single-node',
     `transport.port=${opensearchTestConfig.getTransportPort()}`,
     `indices.id_field_data.enabled=false`,
+    'bootstrap.system_call_filter=false',
     ...customOpenSearchArgs,
   ];
 
@@ -107,6 +108,7 @@ export function createLegacyOpenSearchTestCluster(options = {}) {
         password: config.password,
         opensearchArgs,
         opensearchEnvVars,
+        bundledJDK: opensearchFrom === 'snapshot',
       });
     }
 

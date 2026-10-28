@@ -118,7 +118,9 @@ describe('workspace service api integration test', () => {
 
       expect(result.body.success).toEqual(true);
 
-      await opensearchServer.opensearch.getClient().indices.refresh({ index: '.kibana' });
+      await opensearchServer.opensearch
+        .getClient()
+        .indices.refresh({ index: '.opensearch_dashboards' });
 
       // same name
       result = await osdTestServer.request
