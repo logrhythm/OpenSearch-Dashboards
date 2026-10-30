@@ -39,13 +39,7 @@ const NAV_ITEMS = [
 ];
 
 // Apps where the title row should be hidden (they provide their own page header)
-export const APPS_WITHOUT_TITLE = new Set([
-  'discover',
-  'data-explorer',
-  'visualize',
-  'dev_tools',
-  'management',
-]);
+export const APPS_WITHOUT_TITLE = new Set(['discover', 'data-explorer', 'dev_tools', 'management']);
 
 // Apps with no query bar / action menu — skip the action row entirely
 // so content appears flush below the navbar.

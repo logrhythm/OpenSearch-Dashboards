@@ -475,10 +475,9 @@ export function Header({
   const pageTitle = breadcrumbs.length > 1 ? breadcrumbs[breadcrumbs.length - 1].text : '';
 
   // Hide the fixed title row for apps that render their own page header,
-  // and also for the dashboards listing (no specific dashboard open).
-  const hideTitleRow =
-    APPS_WITHOUT_TITLE.has(currentAppId ?? '') ||
-    (currentAppId === 'dashboards' && breadcrumbs.length <= 1);
+  // also for the dashboards/visualize listing pages (no specific item open),
+  // and whenever there is no page title to display.
+  const hideTitleRow = APPS_WITHOUT_TITLE.has(currentAppId ?? '') || !pageTitle;
 
   // Some apps (Dev Tools, Management) have no query bar — don't render the action row at all.
   // Body padding-top = 50px (navbar only) so content starts right below.
