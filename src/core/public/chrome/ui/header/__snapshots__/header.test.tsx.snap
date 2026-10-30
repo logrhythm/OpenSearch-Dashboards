@@ -2266,36 +2266,6 @@ exports[`Header handles visibility and lock changes 1`] = `
           }
         }
       />
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "backgroundColor": "#fff",
-            "display": "flex",
-            "fontSize": "16px",
-            "fontWeight": 600,
-            "height": "36px",
-            "left": "48px",
-            "overflow": "hidden",
-            "padding": "0 8px",
-            "position": "fixed",
-            "right": 0,
-            "textOverflow": "ellipsis",
-            "top": "50px",
-            "whiteSpace": "nowrap",
-            "zIndex": 1000,
-          }
-        }
-      >
-        <span
-          style={
-            Object {
-              "overflow": "hidden",
-              "textOverflow": "ellipsis",
-            }
-          }
-        />
-      </div>
       <style
         dangerouslySetInnerHTML={
           Object {
@@ -2304,10 +2274,10 @@ exports[`Header handles visibility and lock changes 1`] = `
         body:not(.headerIsExpanded):not(.headerIsDense),
         body.euiBody--headerIsFixed,
         body.ouiBody--headerIsFixed {
-          padding-top: 126px !important;
+          padding-top: 90px !important;
         }
         .app-wrapper {
-          min-height: calc(100vh - 126px) !important;
+          min-height: calc(100vh - 90px) !important;
         }
       ",
           }
@@ -2325,7 +2295,7 @@ exports[`Header handles visibility and lock changes 1`] = `
             "padding": "0 4px",
             "position": "fixed",
             "right": 0,
-            "top": "86px",
+            "top": "50px",
             "zIndex": 1000,
           }
         }
@@ -8593,36 +8563,6 @@ exports[`Header renders condensed header 1`] = `
           }
         }
       />
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "backgroundColor": "#fff",
-            "display": "flex",
-            "fontSize": "16px",
-            "fontWeight": 600,
-            "height": "36px",
-            "left": "48px",
-            "overflow": "hidden",
-            "padding": "0 8px",
-            "position": "fixed",
-            "right": 0,
-            "textOverflow": "ellipsis",
-            "top": "50px",
-            "whiteSpace": "nowrap",
-            "zIndex": 1000,
-          }
-        }
-      >
-        <span
-          style={
-            Object {
-              "overflow": "hidden",
-              "textOverflow": "ellipsis",
-            }
-          }
-        />
-      </div>
       <style
         dangerouslySetInnerHTML={
           Object {
@@ -8631,10 +8571,10 @@ exports[`Header renders condensed header 1`] = `
         body:not(.headerIsExpanded):not(.headerIsDense),
         body.euiBody--headerIsFixed,
         body.ouiBody--headerIsFixed {
-          padding-top: 126px !important;
+          padding-top: 90px !important;
         }
         .app-wrapper {
-          min-height: calc(100vh - 126px) !important;
+          min-height: calc(100vh - 90px) !important;
         }
       ",
           }
@@ -8652,7 +8592,7 @@ exports[`Header renders condensed header 1`] = `
             "padding": "0 4px",
             "position": "fixed",
             "right": 0,
-            "top": "86px",
+            "top": "50px",
             "zIndex": 1000,
           }
         }
@@ -15668,36 +15608,6 @@ exports[`Header toggles primary navigation menu when clicked 1`] = `
           }
         }
       />
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "backgroundColor": "#fff",
-            "display": "flex",
-            "fontSize": "16px",
-            "fontWeight": 600,
-            "height": "36px",
-            "left": "48px",
-            "overflow": "hidden",
-            "padding": "0 8px",
-            "position": "fixed",
-            "right": 0,
-            "textOverflow": "ellipsis",
-            "top": "50px",
-            "whiteSpace": "nowrap",
-            "zIndex": 1000,
-          }
-        }
-      >
-        <span
-          style={
-            Object {
-              "overflow": "hidden",
-              "textOverflow": "ellipsis",
-            }
-          }
-        />
-      </div>
       <style
         dangerouslySetInnerHTML={
           Object {
@@ -15706,10 +15616,10 @@ exports[`Header toggles primary navigation menu when clicked 1`] = `
         body:not(.headerIsExpanded):not(.headerIsDense),
         body.euiBody--headerIsFixed,
         body.ouiBody--headerIsFixed {
-          padding-top: 126px !important;
+          padding-top: 90px !important;
         }
         .app-wrapper {
-          min-height: calc(100vh - 126px) !important;
+          min-height: calc(100vh - 90px) !important;
         }
       ",
           }
@@ -15727,7 +15637,7 @@ exports[`Header toggles primary navigation menu when clicked 1`] = `
             "padding": "0 4px",
             "position": "fixed",
             "right": 0,
-            "top": "86px",
+            "top": "50px",
             "zIndex": 1000,
           }
         }
