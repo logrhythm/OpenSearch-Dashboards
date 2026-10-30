@@ -30,7 +30,7 @@
 
 import dateMath from '@elastic/datemath';
 import classNames from 'classnames';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { i18n } from '@osd/i18n';
 
 // Import with try-catch to handle missing nm-web-shared package gracefully
@@ -130,53 +130,6 @@ export default function QueryBarTopRow(props: QueryBarTopRowProps) {
       setDisplayQuery(props.query);
     }
   }, [props.query]);
-
-  // Enhanced CSS loading detection with rate limiting
-  const useCSSLoaded = () => {
-    const [cssLoaded, setCssLoaded] = useState(false);
-    const maxRetries = useRef(20);
-    const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
-
-    useEffect(() => {
-      let retryCount = 0;
-
-      const checkCSS = () => {
-        if (retryCount >= maxRetries.current) {
-          setCssLoaded(true);
-          return;
-        }
-
-        const testEl = document.createElement('div');
-        testEl.className = 'osdQueryBar';
-        testEl.style.visibility = 'hidden';
-        document.body.appendChild(testEl);
-
-        const styles = window.getComputedStyle(testEl);
-        const hasStyles = styles.padding !== '0px' || styles.paddingLeft !== '0px';
-
-        document.body.removeChild(testEl);
-
-        if (hasStyles) {
-          setCssLoaded(true);
-        } else {
-          retryCount++;
-          timeoutRef.current = setTimeout(checkCSS, 100);
-        }
-      };
-
-      checkCSS();
-
-      return () => {
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-      };
-    }, []);
-
-    return cssLoaded;
-  };
-
-  const cssLoaded = useCSSLoaded();
 
   const queryLanguage = props.query && props.query.language;
 
@@ -508,7 +461,7 @@ export default function QueryBarTopRow(props: QueryBarTopRowProps) {
 
   const classes = classNames('osdQueryBar', {
     'osdQueryBar--withDatePicker': props.showDatePicker,
-    'osdQueryBar--cssLoaded': cssLoaded,
+    'osdQueryBar--cssLoaded': true,
   });
 
   const shouldUseDatePickerRef =
@@ -522,8 +475,7 @@ export default function QueryBarTopRow(props: QueryBarTopRowProps) {
         className={classes}
         responsive={!!props.showDatePicker}
         gutterSize="s"
-        justifyContent={cssLoaded ? 'flexEnd' : 'flexStart'}
-        style={!cssLoaded ? { minHeight: '40px' } : undefined}
+        justifyContent="flexEnd"
       >
         {renderQueryInput()}
         {renderSharingMetaFields()}

@@ -47,6 +47,40 @@ export class OpenSearchDashboardsLegacyPlugin {
 
     // Redirect bare Analyze URLs to a default dashboard to avoid blank landing pages.
     const defaultAnalyzeDashboardId = 'b595b4a0-d0c6-11e9-a8eb-5fa4111061ad';
+
+    // Poll the saved-objects API until the default dashboard is available, then navigate to it.
+    // configureOSD.py runs as ExecStartPost and may still be importing saved objects when the
+    // browser first reaches this URL (e.g. on an elasticsearch→opensearch upgrade). The OSD
+    // dashboards app navigates to #/list when the dashboard ID is not yet in the index; this
+    // poller fires window.location.replace() as soon as the dashboard shows up, even from #/list.
+    const startAnalyzeRedirectPoller = (targetUrl: string, analyzeBase: string) => {
+      if (window.location.href === targetUrl) return;
+      const apiUrl = `${analyzeBase}/api/saved_objects/dashboard/${defaultAnalyzeDashboardId}`;
+      let attempts = 0;
+      const maxAttempts = 18; // up to 90 s (18 × 5 s) — covers configureOSD.py startup time
+      const tryOnce = () => {
+        fetch(apiUrl, { credentials: 'same-origin' })
+          .then((resp) => {
+            if (resp.ok) {
+              // Dashboard is ready — navigate regardless of where #hash currently is.
+              if (window.location.href !== targetUrl) {
+                window.location.replace(targetUrl);
+              }
+              return;
+            }
+            scheduleRetry();
+          })
+          .catch(() => scheduleRetry()); // network error — keep waiting
+      };
+      const scheduleRetry = () => {
+        attempts += 1;
+        if (attempts < maxAttempts) {
+          setTimeout(tryOnce, 5000);
+        }
+      };
+      tryOnce();
+    };
+
     const redirectLegacyAnalyzeLanding = () => {
       const pathName = window.location.pathname;
       const hash = window.location.hash || '';
@@ -60,32 +94,32 @@ export class OpenSearchDashboardsLegacyPlugin {
 
       if ((analyzeRootMatch || dashboardsRootMatch) && isBlankHash) {
         const targetBase = analyzeRootMatch ? analyzeRootMatch[1] : dashboardsRootMatch![1];
+        const analyzeBase = analyzeRootMatch
+          ? analyzeRootMatch[1]
+          : targetBase.replace(/\/app\/dashboards$/, '');
         const targetUrl = analyzeRootMatch
           ? `${targetBase}/app/dashboards#/view/${defaultAnalyzeDashboardId}`
           : `${targetBase}#/view/${defaultAnalyzeDashboardId}`;
 
-        if (window.location.href !== targetUrl) {
-          window.location.replace(targetUrl);
-          return true;
-        }
+        startAnalyzeRedirectPoller(targetUrl, analyzeBase);
+        return true;
       }
 
       if (legacyKibanaAnalyzeMatch && isLegacyDashboardRoot) {
         const targetBase = legacyKibanaAnalyzeMatch[1];
         const targetUrl = `${targetBase}/app/dashboards#/view/${defaultAnalyzeDashboardId}`;
-        if (window.location.href !== targetUrl) {
-          window.location.replace(targetUrl);
-          return true;
-        }
+        startAnalyzeRedirectPoller(targetUrl, targetBase);
+        return true;
       }
 
       return false;
     };
 
-    if (redirectLegacyAnalyzeLanding()) {
-      return;
-    }
-
+    // Always set up the hashchange listener before the initial check so any subsequent
+    // hash navigation is also evaluated (e.g. a direct link to /app/kibana).
+    // Do NOT return early after scheduling a redirect — full plugin setup must complete
+    // so the netmon globals and header style are available when the dashboard loads.
+    redirectLegacyAnalyzeLanding();
     window.addEventListener('hashchange', redirectLegacyAnalyzeLanding);
 
     setNpStart(core);
