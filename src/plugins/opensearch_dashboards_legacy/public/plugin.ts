@@ -48,36 +48,68 @@ export class OpenSearchDashboardsLegacyPlugin {
     // Redirect bare Analyze URLs to a default dashboard to avoid blank landing pages.
     const defaultAnalyzeDashboardId = 'b595b4a0-d0c6-11e9-a8eb-5fa4111061ad';
 
-    // Poll the saved-objects API until the default dashboard is available, then navigate to it.
-    // configureOSD.py runs as ExecStartPost and may still be importing saved objects when the
-    // browser first reaches this URL (e.g. on an elasticsearch→opensearch upgrade). The OSD
-    // dashboards app navigates to #/list when the dashboard ID is not yet in the index; this
-    // poller fires window.location.replace() as soon as the dashboard shows up, even from #/list.
+    // Keys used to persist the pending redirect across page reloads.
+    // configureOSD.py (ExecStartPost) may take several minutes to import saved objects on an
+    // elasticsearch→opensearch upgrade; sessionStorage keeps the intent alive if the user
+    // reloads the page while the poller is still waiting.
+    const POLLER_EXPIRY_KEY = 'nm_analyze_poller_expiry';
+    const POLLER_TARGET_KEY = 'nm_analyze_poller_target';
+    const POLLER_BASE_KEY = 'nm_analyze_poller_base';
+    const POLLER_INTERVAL_MS = 5000;
+    const POLLER_DURATION_MS = 360000; // 6 min — enough for configureOSD.py on a slow upgrade
+
+    // Guard against launching a second concurrent poller on hashchange (e.g. OSD redirects
+    // #/view/{id} → #/list before configureOSD.py finishes). Resets on success or expiry.
+    let pollerActive = false;
+
     const startAnalyzeRedirectPoller = (targetUrl: string, analyzeBase: string) => {
-      if (window.location.href === targetUrl) return;
+      if (pollerActive) return; // a poller is already running; let it finish
+      pollerActive = true;
+
+      // Persist intent so a page reload can resume the poller.
+      const expiresAt = Date.now() + POLLER_DURATION_MS;
+      try {
+        sessionStorage.setItem(POLLER_EXPIRY_KEY, String(expiresAt));
+        sessionStorage.setItem(POLLER_TARGET_KEY, targetUrl);
+        sessionStorage.setItem(POLLER_BASE_KEY, analyzeBase);
+      } catch (_) {
+        /* sessionStorage may be unavailable in some envs; continue without persistence */
+      }
+
       const apiUrl = `${analyzeBase}/api/saved_objects/dashboard/${defaultAnalyzeDashboardId}`;
-      let attempts = 0;
-      const maxAttempts = 18; // up to 90 s (18 × 5 s) — covers configureOSD.py startup time
+
       const tryOnce = () => {
+        let expiry = POLLER_DURATION_MS + Date.now(); // fallback if sessionStorage unavailable
+        try {
+          expiry = parseInt(sessionStorage.getItem(POLLER_EXPIRY_KEY) || '0', 10) || expiry;
+        } catch (_) {}
+        if (Date.now() > expiry) {
+          pollerActive = false;
+          return; // give up — OSD probably won't load the dashboard
+        }
+
         fetch(apiUrl, { credentials: 'same-origin' })
           .then((resp) => {
             if (resp.ok) {
-              // Dashboard is ready — navigate regardless of where #hash currently is.
-              if (window.location.href !== targetUrl) {
+              pollerActive = false;
+              // Do NOT clear sessionStorage here. If OSD can't render the dashboard
+              // (e.g. referenced visualizations still loading) it falls back to #/list;
+              // keeping the sessionStorage entry lets the resume logic restart the poller.
+              // The entry expires naturally after POLLER_DURATION_MS.
+              // Use startsWith so OSD state params appended to the hash (e.g. ?_a=...&_g=...)
+              // don't cause a spurious redirect when we're already viewing the dashboard.
+              const currentPathHash = window.location.pathname + window.location.hash;
+              if (!currentPathHash.startsWith(targetUrl)) {
                 window.location.replace(targetUrl);
               }
               return;
             }
-            scheduleRetry();
+            // Any non-200 (404 = not loaded yet, 503 = OSD migration in progress, etc.) — retry.
+            setTimeout(tryOnce, POLLER_INTERVAL_MS);
           })
-          .catch(() => scheduleRetry()); // network error — keep waiting
+          .catch(() => setTimeout(tryOnce, POLLER_INTERVAL_MS)); // network error — keep waiting
       };
-      const scheduleRetry = () => {
-        attempts += 1;
-        if (attempts < maxAttempts) {
-          setTimeout(tryOnce, 5000);
-        }
-      };
+
       tryOnce();
     };
 
@@ -91,6 +123,30 @@ export class OpenSearchDashboardsLegacyPlugin {
 
       const isBlankHash = hash === '' || hash === '#' || hash === '#/';
       const isLegacyDashboardRoot = /^#\/dashboard\/?(?:\?|$)/.test(hash);
+      // Matches #/view/{defaultId} with any trailing query params — covers the case where the
+      // browser restores the last visited URL after an elasticsearch→opensearch upgrade, but
+      // configureOSD.py hasn't imported the dashboard yet so OSD falls back to #/list.
+      const isDefaultDashView = new RegExp(`^#\\/view\\/${defaultAnalyzeDashboardId}`).test(hash);
+
+      // Resume a persisted poller after a page reload (e.g. user refreshed while waiting).
+      const isOnAnalyzeApp = !!(analyzeRootMatch || dashboardsRootMatch);
+      if (isOnAnalyzeApp) {
+        try {
+          const storedTarget = sessionStorage.getItem(POLLER_TARGET_KEY);
+          const storedBase = sessionStorage.getItem(POLLER_BASE_KEY);
+          const storedExpiry = parseInt(sessionStorage.getItem(POLLER_EXPIRY_KEY) || '0', 10);
+          const currentPathHash = window.location.pathname + window.location.hash;
+          if (
+            storedTarget &&
+            storedBase &&
+            storedExpiry > Date.now() &&
+            !currentPathHash.startsWith(storedTarget)
+          ) {
+            startAnalyzeRedirectPoller(storedTarget, storedBase);
+            return true;
+          }
+        } catch (_) {}
+      }
 
       if ((analyzeRootMatch || dashboardsRootMatch) && isBlankHash) {
         const targetBase = analyzeRootMatch ? analyzeRootMatch[1] : dashboardsRootMatch![1];
@@ -101,6 +157,17 @@ export class OpenSearchDashboardsLegacyPlugin {
           ? `${targetBase}/app/dashboards#/view/${defaultAnalyzeDashboardId}`
           : `${targetBase}#/view/${defaultAnalyzeDashboardId}`;
 
+        startAnalyzeRedirectPoller(targetUrl, analyzeBase);
+        return true;
+      }
+
+      // Handle direct navigation to #/view/{defaultId} (e.g. browser restoring the last URL
+      // after an upgrade). OSD will redirect to #/list if the dashboard doesn't exist yet;
+      // the poller detects this via sessionStorage and resumes on the subsequent hashchange.
+      if (dashboardsRootMatch && isDefaultDashView) {
+        const targetBase = dashboardsRootMatch[1];
+        const analyzeBase = targetBase.replace(/\/app\/dashboards$/, '');
+        const targetUrl = `${targetBase}#/view/${defaultAnalyzeDashboardId}`;
         startAnalyzeRedirectPoller(targetUrl, analyzeBase);
         return true;
       }
