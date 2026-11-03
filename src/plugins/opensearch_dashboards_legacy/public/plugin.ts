@@ -48,66 +48,77 @@ export class OpenSearchDashboardsLegacyPlugin {
     // Redirect bare Analyze URLs to a default dashboard to avoid blank landing pages.
     const defaultAnalyzeDashboardId = 'b595b4a0-d0c6-11e9-a8eb-5fa4111061ad';
 
-    // Keys used to persist the pending redirect across page reloads.
-    // configureOSD.py (ExecStartPost) may take several minutes to import saved objects on an
-    // elasticsearch→opensearch upgrade; sessionStorage keeps the intent alive if the user
-    // reloads the page while the poller is still waiting.
     const POLLER_EXPIRY_KEY = 'nm_analyze_poller_expiry';
     const POLLER_TARGET_KEY = 'nm_analyze_poller_target';
     const POLLER_BASE_KEY = 'nm_analyze_poller_base';
+    // Set once the dashboard has rendered successfully; prevents #/list intercepts after
+    // the upgrade is done so the user can navigate to the dashboard list intentionally.
+    const SESSION_COMPLETE_KEY = 'nm_analyze_session_complete';
     const POLLER_INTERVAL_MS = 5000;
-    const POLLER_DURATION_MS = 360000; // 6 min — enough for configureOSD.py on a slow upgrade
+    const POLLER_DURATION_MS = 360000; // 6 min
 
-    // Guard against launching a second concurrent poller on hashchange (e.g. OSD redirects
-    // #/view/{id} → #/list before configureOSD.py finishes). Resets on success or expiry.
     let pollerActive = false;
 
     const startAnalyzeRedirectPoller = (targetUrl: string, analyzeBase: string) => {
-      if (pollerActive) return; // a poller is already running; let it finish
+      if (pollerActive) return;
       pollerActive = true;
 
-      // Persist intent so a page reload can resume the poller.
-      const expiresAt = Date.now() + POLLER_DURATION_MS;
+      // Starting a fresh poller means we are in a new upgrade cycle — clear any
+      // leftover SESSION_COMPLETE so the #/list guard is active again.
       try {
-        sessionStorage.setItem(POLLER_EXPIRY_KEY, String(expiresAt));
+        sessionStorage.removeItem(SESSION_COMPLETE_KEY);
+        sessionStorage.setItem(POLLER_EXPIRY_KEY, String(Date.now() + POLLER_DURATION_MS));
         sessionStorage.setItem(POLLER_TARGET_KEY, targetUrl);
         sessionStorage.setItem(POLLER_BASE_KEY, analyzeBase);
       } catch (_) {
-        /* sessionStorage may be unavailable in some envs; continue without persistence */
+        /* sessionStorage unavailable */
       }
 
       const apiUrl = `${analyzeBase}/api/saved_objects/dashboard/${defaultAnalyzeDashboardId}`;
 
       const tryOnce = () => {
-        let expiry = POLLER_DURATION_MS + Date.now(); // fallback if sessionStorage unavailable
+        let expiry = POLLER_DURATION_MS + Date.now();
         try {
           expiry = parseInt(sessionStorage.getItem(POLLER_EXPIRY_KEY) || '0', 10) || expiry;
-        } catch (_) {}
+        } catch (_) {
+          /* sessionStorage unavailable */
+        }
         if (Date.now() > expiry) {
           pollerActive = false;
-          return; // give up — OSD probably won't load the dashboard
+          return;
         }
 
         fetch(apiUrl, { credentials: 'same-origin' })
           .then((resp) => {
             if (resp.ok) {
               pollerActive = false;
-              // Do NOT clear sessionStorage here. If OSD can't render the dashboard
-              // (e.g. referenced visualizations still loading) it falls back to #/list;
-              // keeping the sessionStorage entry lets the resume logic restart the poller.
-              // The entry expires naturally after POLLER_DURATION_MS.
-              // Use startsWith so OSD state params appended to the hash (e.g. ?_a=...&_g=...)
-              // don't cause a spurious redirect when we're already viewing the dashboard.
               const currentPathHash = window.location.pathname + window.location.hash;
               if (!currentPathHash.startsWith(targetUrl)) {
                 window.location.replace(targetUrl);
               }
+              // Wait 5s: if OSD rendered the dashboard successfully we will still be at
+              // #/view/{id}, so clear the poller state and mark the session complete so
+              // subsequent user navigation to #/list is NOT intercepted.
+              // If OSD immediately falls back to #/list (render failure), the hashchange
+              // resumes the poller before this timeout fires, keeping recovery active.
+              setTimeout(() => {
+                const pathAfterDelay = window.location.pathname + window.location.hash;
+                if (pathAfterDelay.startsWith(targetUrl)) {
+                  try {
+                    sessionStorage.removeItem(POLLER_EXPIRY_KEY);
+                    sessionStorage.removeItem(POLLER_TARGET_KEY);
+                    sessionStorage.removeItem(POLLER_BASE_KEY);
+                    sessionStorage.setItem(SESSION_COMPLETE_KEY, '1');
+                  } catch (_) {
+                    /* sessionStorage unavailable */
+                  }
+                }
+              }, 5000);
               return;
             }
-            // Any non-200 (404 = not loaded yet, 503 = OSD migration in progress, etc.) — retry.
             setTimeout(tryOnce, POLLER_INTERVAL_MS);
           })
-          .catch(() => setTimeout(tryOnce, POLLER_INTERVAL_MS)); // network error — keep waiting
+          .catch(() => setTimeout(tryOnce, POLLER_INTERVAL_MS));
       };
 
       tryOnce();
@@ -121,14 +132,26 @@ export class OpenSearchDashboardsLegacyPlugin {
       const dashboardsRootMatch = pathName.match(/^(.*\/analyze\/app\/dashboards)\/?$/);
       const legacyKibanaAnalyzeMatch = pathName.match(/^(.*\/analyze)\/app\/kibana\/?$/);
 
-      const isBlankHash = hash === '' || hash === '#' || hash === '#/';
+      // #/list (with or without query params) is included here because OSD navigates there
+      // when a dashboard is not found — and it may do so during plugin initialisation,
+      // before the hashchange listener is even registered. SESSION_COMPLETE gates this so
+      // that once the upgrade is done the user can navigate to #/list freely.
+      const isBlankHash =
+        hash === '' || hash === '#' || hash === '#/' || /^#\/list(\?|$)/.test(hash);
       const isLegacyDashboardRoot = /^#\/dashboard\/?(?:\?|$)/.test(hash);
-      // Matches #/view/{defaultId} with any trailing query params — covers the case where the
-      // browser restores the last visited URL after an elasticsearch→opensearch upgrade, but
-      // configureOSD.py hasn't imported the dashboard yet so OSD falls back to #/list.
       const isDefaultDashView = new RegExp(`^#\\/view\\/${defaultAnalyzeDashboardId}`).test(hash);
 
-      // Resume a persisted poller after a page reload (e.g. user refreshed while waiting).
+      // If the upgrade has already completed in this browser session, do not intercept
+      // any navigation — the user is in normal use.
+      let isSessionComplete = false;
+      try {
+        isSessionComplete = sessionStorage.getItem(SESSION_COMPLETE_KEY) === '1';
+      } catch (_) {
+        /* sessionStorage unavailable */
+      }
+      if (isSessionComplete) return false;
+
+      // Resume a persisted poller after a page reload.
       const isOnAnalyzeApp = !!(analyzeRootMatch || dashboardsRootMatch);
       if (isOnAnalyzeApp) {
         try {
@@ -145,7 +168,9 @@ export class OpenSearchDashboardsLegacyPlugin {
             startAnalyzeRedirectPoller(storedTarget, storedBase);
             return true;
           }
-        } catch (_) {}
+        } catch (_) {
+          /* sessionStorage unavailable */
+        }
       }
 
       if ((analyzeRootMatch || dashboardsRootMatch) && isBlankHash) {
@@ -156,14 +181,10 @@ export class OpenSearchDashboardsLegacyPlugin {
         const targetUrl = analyzeRootMatch
           ? `${targetBase}/app/dashboards#/view/${defaultAnalyzeDashboardId}`
           : `${targetBase}#/view/${defaultAnalyzeDashboardId}`;
-
         startAnalyzeRedirectPoller(targetUrl, analyzeBase);
         return true;
       }
 
-      // Handle direct navigation to #/view/{defaultId} (e.g. browser restoring the last URL
-      // after an upgrade). OSD will redirect to #/list if the dashboard doesn't exist yet;
-      // the poller detects this via sessionStorage and resumes on the subsequent hashchange.
       if (dashboardsRootMatch && isDefaultDashView) {
         const targetBase = dashboardsRootMatch[1];
         const analyzeBase = targetBase.replace(/\/app\/dashboards$/, '');
