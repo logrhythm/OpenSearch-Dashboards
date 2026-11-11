@@ -86,6 +86,14 @@ doc-table {
   td {
     border-top: 1px solid $euiColorLightShade !important;
     border-bottom: none !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  td.osdDocTableCell__toggleDetails {
+    width: 28px !important;
+    min-width: 28px !important;
+    padding: 4px 0 0 4px !important;
   }
 
   // To fight intruding styles that conflict with OUI's

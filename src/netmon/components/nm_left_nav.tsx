@@ -18,6 +18,19 @@ import { HttpStart } from '../../core/public/http';
 import { InternalApplicationStart } from '../../core/public/application/types';
 import { nmThemeColors } from '../utils/ui_theme';
 
+const COLLAPSED_WIDTH = 48;
+const EXPANDED_WIDTH = 200;
+
+const NAV_DOCKED_KEY = 'nm_left_nav_docked';
+const NAV_WIDTH_VAR = '--nm-nav-width';
+
+function setNavWidthVar(docked: boolean, expanded: boolean) {
+  document.documentElement.style.setProperty(
+    NAV_WIDTH_VAR,
+    docked && expanded ? `${EXPANDED_WIDTH}px` : `${COLLAPSED_WIDTH}px`
+  );
+}
+
 interface NmLeftNavProps {
   navLinks$: Rx.Observable<ChromeNavLink[]>;
   recentlyAccessed$: Rx.Observable<ChromeRecentlyAccessedHistoryItem[]>;
@@ -26,9 +39,6 @@ interface NmLeftNavProps {
   navigateToUrl: InternalApplicationStart['navigateToUrl'];
   appId$: InternalApplicationStart['currentAppId$'];
 }
-
-const COLLAPSED_WIDTH = 48;
-const EXPANDED_WIDTH = 200;
 
 const NAV_ITEMS = [
   { id: 'discover', label: 'Discover', icon: 'discoverApp' as const },
@@ -59,7 +69,22 @@ export function NmLeftNav({
   navigateToUrl,
   appId$,
 }: NmLeftNavProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isDocked, setIsDocked] = useState(() => {
+    try {
+      const docked = localStorage.getItem(NAV_DOCKED_KEY) === 'true';
+      setNavWidthVar(docked, docked);
+      return docked;
+    } catch {
+      return false;
+    }
+  });
+  const [isExpanded, setIsExpanded] = useState(() => {
+    try {
+      return localStorage.getItem(NAV_DOCKED_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [showRecent, setShowRecent] = useState(false);
   const [tooltip, setTooltip] = useState<TooltipState>({ visible: false, label: '', top: 0 });
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -71,7 +96,10 @@ export function NmLeftNav({
   const width = isExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH;
 
   const handleNavItemClick = (id: string, path?: string) => {
-    setIsExpanded(false);
+    if (!isDocked) {
+      setIsExpanded(false);
+      setNavWidthVar(false, false);
+    }
     setTooltip({ visible: false, label: '', top: 0 });
     navigateToApp(id, path ? { path } : undefined);
   };
@@ -80,7 +108,23 @@ export function NmLeftNav({
     e.preventDefault();
     navigateToUrl(url);
     setShowRecent(false);
-    setIsExpanded(false);
+    if (!isDocked) {
+      setIsExpanded(false);
+      setNavWidthVar(false, false);
+    }
+  };
+
+  const toggleDocked = () => {
+    const next = !isDocked;
+    const nextExpanded = next || isExpanded;
+    setIsDocked(next);
+    setIsExpanded(nextExpanded);
+    setNavWidthVar(next, nextExpanded);
+    try {
+      localStorage.setItem(NAV_DOCKED_KEY, String(next));
+    } catch {
+      /* storage unavailable */
+    }
   };
 
   const showTooltip = (e: React.MouseEvent<HTMLDivElement>, label: string) => {
@@ -209,26 +253,88 @@ export function NmLeftNav({
         {/* Spacer */}
         <div style={{ flex: 1 }} />
 
-        {/* Expand / collapse toggle */}
+        {/* Expand / collapse + dock row */}
         <div
-          role="button"
-          tabIndex={0}
-          style={{ ...rowStyle(false), borderTop: `1px solid ${nmThemeColors.divider}` }}
-          onClick={() => setIsExpanded(!isExpanded)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') setIsExpanded(!isExpanded);
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.backgroundColor = nmThemeColors.hover;
-            showTooltip(e, isExpanded ? 'Collapse' : 'Expand');
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
-            hideTooltip();
+          style={{
+            borderTop: `1px solid ${nmThemeColors.divider}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: isExpanded ? 'space-between' : 'center',
+            padding: isExpanded ? '0 4px' : '0',
           }}
         >
-          <EuiIcon type={isExpanded ? 'menuLeft' : 'menuRight'} size="m" />
-          <span style={labelStyle}>Collapse</span>
+          {/* Expand/collapse button */}
+          <div
+            role="button"
+            tabIndex={0}
+            style={{
+              ...rowStyle(false),
+              borderTop: 'none',
+              flex: isExpanded ? '1' : undefined,
+            }}
+            onClick={() => {
+              const nextExpanded = !isExpanded;
+              setIsExpanded(nextExpanded);
+              setNavWidthVar(isDocked, nextExpanded);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                const nextExpanded = !isExpanded;
+                setIsExpanded(nextExpanded);
+                setNavWidthVar(isDocked, nextExpanded);
+              }
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = nmThemeColors.hover;
+              showTooltip(e, isExpanded ? 'Collapse' : 'Expand');
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+              hideTooltip();
+            }}
+          >
+            <EuiIcon type={isExpanded ? 'menuLeft' : 'menuRight'} size="m" />
+            <span style={labelStyle}>Collapse</span>
+          </div>
+
+          {/* Dock / undock button — only visible when expanded */}
+          {isExpanded && (
+            <div
+              role="button"
+              tabIndex={0}
+              title={isDocked ? 'Navigation is docked' : 'Navigation is undocked'}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '10px 8px',
+                cursor: 'pointer',
+                borderRadius: '4px',
+                flexShrink: 0,
+                color: isDocked ? nmThemeColors.text : nmThemeColors.subduedText,
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleDocked();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.stopPropagation();
+                  toggleDocked();
+                }
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.backgroundColor = nmThemeColors.hover;
+                showTooltip(e, isDocked ? 'Navigation is docked' : 'Navigation is undocked');
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+                hideTooltip();
+              }}
+            >
+              <EuiIcon type={isDocked ? 'lock' : 'lockOpen'} size="s" />
+            </div>
+          )}
         </div>
       </div>
 

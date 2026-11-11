@@ -1805,7 +1805,7 @@ exports[`Header handles visibility and lock changes 1`] = `
           body, body.coreSystemRootDomElement {
             margin-top: 0 !important;
             padding-top: 90px !important;
-            padding-left: 48px !important;
+            padding-left: var(--nm-nav-width, 48px) !important;
             background-color: #fff !important;
           }
           /* White background for all page layout containers */
@@ -2290,7 +2290,7 @@ exports[`Header handles visibility and lock changes 1`] = `
             "alignItems": "center",
             "backgroundColor": "#fff",
             "display": "flex",
-            "left": "48px",
+            "left": "var(--nm-nav-width, 48px)",
             "minHeight": "40px",
             "padding": "0 4px",
             "position": "fixed",
@@ -4865,7 +4865,7 @@ exports[`Header renders application header without title and breadcrumbs 1`] = `
           body, body.coreSystemRootDomElement {
             margin-top: 0 !important;
             padding-top: 90px !important;
-            padding-left: 48px !important;
+            padding-left: var(--nm-nav-width, 48px) !important;
             background-color: #fff !important;
           }
           /* White background for all page layout containers */
@@ -8115,7 +8115,7 @@ exports[`Header renders condensed header 1`] = `
           body, body.coreSystemRootDomElement {
             margin-top: 0 !important;
             padding-top: 90px !important;
-            padding-left: 48px !important;
+            padding-left: var(--nm-nav-width, 48px) !important;
             background-color: #fff !important;
           }
           /* White background for all page layout containers */
@@ -8587,7 +8587,7 @@ exports[`Header renders condensed header 1`] = `
             "alignItems": "center",
             "backgroundColor": "#fff",
             "display": "flex",
-            "left": "48px",
+            "left": "var(--nm-nav-width, 48px)",
             "minHeight": "40px",
             "padding": "0 4px",
             "position": "fixed",
@@ -11333,7 +11333,7 @@ exports[`Header renders page header with application title 1`] = `
           body, body.coreSystemRootDomElement {
             margin-top: 0 !important;
             padding-top: 90px !important;
-            padding-left: 48px !important;
+            padding-left: var(--nm-nav-width, 48px) !important;
             background-color: #fff !important;
           }
           /* White background for all page layout containers */
@@ -15160,7 +15160,7 @@ exports[`Header toggles primary navigation menu when clicked 1`] = `
           body, body.coreSystemRootDomElement {
             margin-top: 0 !important;
             padding-top: 90px !important;
-            padding-left: 48px !important;
+            padding-left: var(--nm-nav-width, 48px) !important;
             background-color: #fff !important;
           }
           /* White background for all page layout containers */
@@ -15632,7 +15632,7 @@ exports[`Header toggles primary navigation menu when clicked 1`] = `
             "alignItems": "center",
             "backgroundColor": "#fff",
             "display": "flex",
-            "left": "48px",
+            "left": "var(--nm-nav-width, 48px)",
             "minHeight": "40px",
             "padding": "0 4px",
             "position": "fixed",

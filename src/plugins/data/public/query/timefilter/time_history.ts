@@ -32,8 +32,11 @@ import moment from 'moment';
 import { PersistedLog } from '../persisted_log';
 import { DataStorage, TimeRange } from '../../../common';
 
+const INSTALL_EPOCH_KEY = 'nm_timepicker_install_epoch';
+
 export class TimeHistory {
   private history: PersistedLog<TimeRange>;
+  private installEpoch: number;
 
   constructor(storage: DataStorage) {
     const historyOptions = {
@@ -44,6 +47,17 @@ export class TimeHistory {
       },
     };
     this.history = new PersistedLog('timepicker.timeHistory', historyOptions, storage);
+
+    // On first startup after install/upgrade, record the current time so we can
+    // suppress absolute-date ranges that were saved from a previous installation.
+    const stored = storage.get<number>(INSTALL_EPOCH_KEY);
+    if (stored == null) {
+      const now = Date.now();
+      storage.set(INSTALL_EPOCH_KEY, now);
+      this.installEpoch = now;
+    } else {
+      this.installEpoch = Number(stored);
+    }
   }
 
   add(time: TimeRange) {
@@ -60,7 +74,16 @@ export class TimeHistory {
   }
 
   get() {
-    return this.history.get();
+    return this.history.get().filter(({ from, to }) => {
+      const fromStr = String(from);
+      const toStr = String(to);
+      // Relative ranges (containing "now") are always valid — keep them
+      if (fromStr.startsWith('now') || toStr.startsWith('now')) return true;
+      // Absolute ranges whose end date predates this installation are stale — drop them
+      const toMs = Date.parse(toStr);
+      if (!isNaN(toMs) && toMs < this.installEpoch) return false;
+      return true;
+    });
   }
 }
 
