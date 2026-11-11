@@ -507,7 +507,7 @@ export function Header({
           style={{
             position: 'fixed',
             top: '50px',
-            left: '48px',
+            left: 'var(--nm-nav-width, 48px)',
             right: 0,
             zIndex: 1000,
             height: '36px',
@@ -551,7 +551,7 @@ export function Header({
           style={{
             position: 'fixed',
             top: hideTitleRow ? '50px' : '86px',
-            left: '48px',
+            left: 'var(--nm-nav-width, 48px)',
             right: 0,
             zIndex: 1000,
             minHeight: '40px',
@@ -695,7 +695,7 @@ export function Header({
           body, body.coreSystemRootDomElement {
             margin-top: 0 !important;
             padding-top: 90px !important;
-            padding-left: 48px !important;
+            padding-left: var(--nm-nav-width, 48px) !important;
             background-color: ${nmThemeColors.background} !important;
           }
           /* White background for all page layout containers */

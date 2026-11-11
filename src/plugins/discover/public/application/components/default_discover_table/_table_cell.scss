@@ -89,7 +89,16 @@ $osdDocTableCellPadding: calc($euiSizeM / 2); // corresponds to DataGrid medium 
 // nested for specificity
 .osd-table {
   .osdDocTableCell {
-    padding: $euiSizeS;
+    padding: 6px 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 240px;
+  }
+
+  .osdDocTableCell__source {
+    white-space: normal;
+    max-width: none;
   }
 }
 

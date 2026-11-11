@@ -97,10 +97,12 @@ const TableRowUI = ({
         if (shouldBindFormat(colName)) {
           const src = (row._source || {}) as any;
           if (colName === 'Attach') {
+            const rawFilename = src.Filename;
+            const fileName = Array.isArray(rawFilename) ? rawFilename.join(',') : rawFilename || '';
             const cellContent = src.Attach ? (
               <AttachDownload
-                session={src.Session || ''}
-                fileName={src.Filename || ''}
+                session={Array.isArray(src.Session) ? src.Session[0] || '' : src.Session || ''}
+                fileName={fileName}
                 captured={!!src.Captured}
               />
             ) : null;
@@ -116,7 +118,9 @@ const TableRowUI = ({
           }
           if (colName === 'Captured') {
             const cellContent = src.Captured ? (
-              <CaptureDownload session={src.Session || ''} />
+              <CaptureDownload
+                session={Array.isArray(src.Session) ? src.Session[0] || '' : src.Session || ''}
+              />
             ) : null;
             return (
               <td
