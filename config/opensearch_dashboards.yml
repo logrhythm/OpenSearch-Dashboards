@@ -48,7 +48,7 @@ opensearchDashboards.index: ".opensearch_dashboards"
 # csp_handler.enabled: false
 
 # The default application to load.
-opensearchDashboards.defaultAppId: "dashboard"
+opensearchDashboards.defaultAppId: "dashboard/b595b4a0-d0c6-11e9-a8eb-5fa4111061ad"
 
 # Set the value to true to disable the welcome screen
 #home.disableWelcomeScreen: false
